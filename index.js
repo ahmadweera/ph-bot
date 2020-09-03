@@ -26,25 +26,18 @@ class APIReq {
 
 var currentChannel = null;
 
-// define logic to perform once succesfully logged in
 Client.once('ready', () => {
     console.log('client ready');
 });
 
-// attempt login to Discord with your apps token
 Client.login(Keys.DiscordAppToken);
 
-//perform an action when a message is recieved
 Client.on('message', message => {
     currentChannel = message.channel;
 
-    // if (message.author.id === '202957603364536320') {
-    //     currentChannel.send('Nice try.');
-    // }
-    
-    if (processCommand(message)) {
+    if (processMessage(message)) {
         let content = message.content;
-        let command = retrieveCommand(content.toLowerCase());
+        let command = retrieveCommand(content);
         let arg = retrieveArgument(content);
 
         runCommand(command, arg);
@@ -59,8 +52,9 @@ Client.on('message', message => {
     }
 });
 
-function processCommand(message) {
-    if (currentChannel && !message.author.bot && message.content.toLowerCase().startsWith('ph')) {
+function processMessage(message) {
+    content = message.content.toLowerCase();
+    if (currentChannel && !message.author.bot && content.toLowerCase().startsWith('ph')) {
         return true;
     }
 
@@ -69,6 +63,8 @@ function processCommand(message) {
 
 function retrieveCommand(content) {
     let ret = null;
+
+    content = content.toLowerCase();
     let words = content.split(' ');
 
     if (content && words[1]) {
@@ -103,7 +99,7 @@ function runCommand(command, arg) {
 
 async function getGamesForDate(req, date, today) {
     let embed = new Discord.MessageEmbed();
-    
+
     if (today) {
         embed.setTitle(`Games on today (${date})`);
     } else {
@@ -117,7 +113,7 @@ async function getGamesForDate(req, date, today) {
             games.forEach((game) => {
                 let quarter = `Q${game.currentPeriod[0]}`;
                 let time = new Date(game.startTimeUTC).toLocaleTimeString();
-                let name =  `${game.vTeam.fullName} @ ${game.hTeam.fullName}`;
+                let name = `${game.vTeam.fullName} @ ${game.hTeam.fullName}`;
                 let value = '';
 
                 if (game.statusShortGame === '1') {
