@@ -1,56 +1,63 @@
 require('dotenv').config();
-const Discord = require('discord.js');
-const Client = new Discord.Client();
-const Axios = require('axios');
+const discord = require('discord.js');
+const client = new discord.Client();
+const axios = require('axios');
+const moment = require('moment-timezone');
+const { performance } = require('perf_hooks');
+const date_format = 'YYYY-MM-DD';
 
 const Keys = {
-    'DiscordAppToken': process.env.DISCORD_APP_TOKEN,
-    'RapidApiKey': process.env.RAPID_API_KEY,
+    'DiscordAppToken': process.env.Discord_APP_TOKEN,
     'BotDevChannelId': process.env.BOT_DEV_CHANNEL_ID,
-    'NbaApiUrl': 'https://api-nba-v1.p.rapidapi.com/'
+    'NbaApiUrl': 'https://api-nba-v1.p.rapidapi.com',
+    'NbaApiKey': process.env.NBA_API_KEY,
+    'SportsRadarApiUrl': 'http://api.sportradar.us/nba/trial/v7/en',
+    'SportsRadarApiKey': process.env.SPORTS_RADAR_API_KEY
 }
 
 const APIHeaders = {
     'x-rapidapi-host': 'api-nba-v1.p.rapidapi.com',
-    'x-rapidapi-key': Keys.RapidApiKey,
+    'x-rapidapi-key': Keys.NbaApiKey,
     'useQueryString': true
 }
 
-class APIReq {
+class SRReq {
+    constructor(type, arg, endpoint) {
+        this.method = 'GET'
+        this.url = `${Keys.SportsRadarApiUrl}/${type}/${arg}/${endpoint}.json?api_key=${Keys.SportsRadarApiKey}`;
+        this.endpoint = endpoint;
+        this.arg = arg;
+    }
+}
+
+class NBAReq {
     constructor(endpoint, arg) {
         this.method = 'GET'
-        this.url = Keys.NbaApiUrl + endpoint + arg;
+        this.url = `${Keys.NbaApiUrl}/${endpoint}/${arg}`;
         this.headers = APIHeaders;
     }
 }
 
 var currentChannel = null;
-
-Client.once('ready', () => {
+client.once('ready', () => {
     console.log('client ready');
 });
 
-Client.login(Keys.DiscordAppToken);
+client.login(Keys.DiscordAppToken);
 
-Client.on('message', message => {
+client.on('message', message => {
     currentChannel = message.channel;
 
     if (processMessage(message)) {
+        console.log('command recieved');
         let content = message.content;
         let command = retrieveCommand(content);
         let arg = retrieveArgument(content);
 
         runCommand(command, arg);
     }
-
-    let lower = message.content.toLowerCase();
-
-    if (lower.includes('blocked')) {
-        channel.send('https://tenor.com/view/monkey-locomonkey-gif-16038015');
-    } else if (lower === 'bet') {
-        channel.send('https://tenor.com/view/bet-button-press-gif-12337917');
-    }
 });
+
 
 function processMessage(message) {
     content = message.content.toLowerCase();
@@ -87,76 +94,81 @@ function retrieveArgument(content) {
 function runCommand(command, arg) {
     switch (command.toLowerCase()) {
         case 's':
-            let date = arg ? arg : getCurrentDate();
-            let today = (date === getCurrentDate());
-            let req = new APIReq('games/date/', date);
-            getGamesForDate(req, date, today);
+            args = getRelativeDates(arg);
+            getGamesForDate({ 'req1': new NBAReq('games/date', args.d1), 'req2': new NBAReq('games/date', args.d2), 'dates': args });
             break;
         case 'l':
+            getLiveGames({ 'req': new NBAReq('games/live') });
             break;
     }
 }
 
-async function getGamesForDate(req, date, today) {
-    let embed = new Discord.MessageEmbed();
+function isNullOrEmpty(str) {
+    return (str === null || str === '');
+}
 
-    if (today) {
-        embed.setTitle(`Games on today (${date})`);
-    } else {
-        embed.setTitle(`Games on ${date}`);
+function getRelativeDates(dateStr) {
+    let d1 = isNullOrEmpty(dateStr) ? moment().format(date_format) : moment(dateStr).format(date_format);
+    let d2 = moment(d1).add(1, 'days').format(date_format);
+
+    return {
+        'd1': d1,
+        'd2': d2
+    };
+}
+
+sendRequest = (req) => axios(req);
+
+async function getGamesForDate(opts) {
+    var t0 = performance.now();
+
+    let embed = new discord.MessageEmbed();
+    let trueDate = opts.dates.d1;
+
+    // send requests 
+    let resp1 = await sendRequest(opts.req1);
+    let resp2 = await sendRequest(opts.req2);
+
+    // combine request responses into single games array
+    let games = resp1.data.api.games.concat(resp2.data.api.games);
+
+    // remove games not actually played today
+    games = games.filter(g => moment.utc(g.startTimeUTC).tz("America/Toronto").format(date_format) === trueDate);
+
+    let date = trueDate === moment().format(date_format) ? 'Today' : trueDate;
+    embed.setTitle(`Games for ${date}`);
+
+    games.forEach((game) => {
+        let name = '';
+        let value = '';
+        let ht = game.hTeam;
+        let at = game.vTeam;
+
+        if (game.statusGame === 'Scheduled') {
+            let time = new Date(game.startTimeUTC).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            name = `${ht.fullName} @ ${at.fullName}`;
+            value = "`" + time + "`";
+        }
+
+        else if (game.statusGame === 'In Play') {
+            name = `${ht.fullName} @ ${at.fullName}`;
+            value = `${ht.score.points} - ${at.score.points}  ` + "`" + ` Q${game.currentPeriod[0]} => ${game.clock} ` + "`";
+        }
+
+        else if (game.statusGame === 'Finished') {
+            name = `${ht.fullName} @ ${at.fullName}`;
+            value = `${ht.score.points} - ${at.score.points} ` + "`FINAL`";
+        }
+
+        embed.addField(name, value, false);
+    });
+
+    if (games.length === 0) {
+        embed.setDescription(`No games scheduled for ${date}`);
     }
 
-    await Axios(req)
-        .then((response) => {
-            let games = response.data.api.games;
-
-            games.forEach((game) => {
-                let quarter = `Q${game.currentPeriod[0]}`;
-                let time = new Date(game.startTimeUTC).toLocaleTimeString();
-                let name = `${game.vTeam.fullName} @ ${game.hTeam.fullName}`;
-                let value = '';
-
-                if (game.statusShortGame === '1') {
-                    value += "`" + time + "`";
-                }
-                if (game.statusShortGame === '2') {
-                    value += `${game.hTeam.score.points} - ${game.vTeam.score.points} ` + "`" + quarter + "|" + game.clock + "`";
-                }
-                if (game.statusShortGame === '3') {
-                    value += `${game.hTeam.score.points} - ${game.vTeam.score.points} ` + "`FINAL`";
-                }
-
-                embed.addField(name, value, false);
-            });
-
-        }).catch((error) => {
-            console.log(error)
-        });
-
+    var t1 = performance.now();
+    embed.setFooter(`${Math.round(t1 - t0)}ms`)
     currentChannel.send(embed);
 }
-
-function getCurrentDate() {
-    let date = new Date();
-    let dd = date.getDate();
-    let mm = date.getMonth() + 1;
-    let yyyy = date.getFullYear();
-
-    dd = dd > 10 ? dd : `0${dd}`;
-    mm = mm > 10 ? mm : `0${mm}`;
-
-    date = `${yyyy}-${mm}-${dd}`;
-    return date;
-}
-
-function checkForCommand(message) {
-    let content = message.content;
-    content = content.toLowerCase();
-    return content.startsWith('ph');
-}
-
-function getCommand(content) {
-    let arr = content.split(' ');
-    return arr[1];
-}
-
