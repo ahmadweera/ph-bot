@@ -35,12 +35,12 @@ client.on('message', message => {
 });
 
 function processMessage(message) {
-    const commands = ['nba', 'new'];
+    const commands = ['nba', 'new', 'search'];
     content = message.content.toLowerCase();
     if (currentChannel && !message.author.bot) {
-        for (let i = 0; i <= commands.length; i++){
+        for (let i = 0; i <= commands.length; i++) {
             let command = commands[i];
-            if (content.startsWith(command)){
+            if (content.startsWith(command)) {
                 return true;
             }
         }
@@ -83,11 +83,14 @@ async function runCommand(command, arg) {
             message = 'This endpoint is off right now, Ill be back on when next season starts'
             break;
         case 'new':
-            message = await spotify.getArtistNewRelease(arg);
+            message = await spotify.GetArtistNewRelease(arg);
+            break;
+        case 'search':
+            //message = await spotify.SearchMusic(arg);
+            break;
     }
 
-    if (message){
-        currentChannel.send(message);    
+    if (message) {
+        currentChannel.send(message);
     }
 }
-

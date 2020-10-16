@@ -1,45 +1,64 @@
 require('dotenv').config();
-const main = require('./main');
+const axios = require('axios');
+
+class Request {
+    constructor(url, token) {
+        this.url = url,
+        this.method = 'GET',
+        this.headers = { 'Authorization': 'Bearer ' + token }
+    }
+}
 
 module.exports = {
-    getArtistNewRelease: async function (name) {
+    GetArtistNewRelease: async function (name) {
         if (name) {
-            let artistId = await getArtistByName(name);
-            let token = await getSpotifyToken();
+            let artistId = await GetArtistIdByName(name);
+            let token = await GetSpotifyToken();
 
-            const request1 = {
-                method: 'GET',
-                url: `https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album&limit=1`,
-                headers: {
-                    'Authorization': 'Bearer ' + token
-                }
-            }
-
-            const request2 = {
-                method: 'GET',
-                url: `https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=single&limit=1`,
-                headers: {
-                    'Authorization': 'Bearer ' + token
-                }
-            }
-
-            let promises = [
-                main.sendRequest(request1),
-                main.sendRequest(request2)
-            ];
-            let responses = await main.sendMultipleRequests(promises);
+            let responses = await axios.all([
+                axios(new Request(`https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album&limit=1`, token)),
+                axios(new Request(`https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=single&limit=1`, token))
+            ]);
 
             let album = responses[0].data.items[0];
             let single = responses[1].data.items[0];
 
-            let latestRelease = album.release_date > single.release_date ? album: single;
-            return `https://open.spotify.com/${latestRelease.type}/${latestRelease.id}`;
+            let latest_release;
+            if (album && !single) {
+                latest_release = album;
+            } else if (single && !album) {
+                latest_release = single;
+            } else if (single && album) {
+                latest_release = album.release_date > single.release_date ? album : single;
+            }
+
+            if (latest_release) {
+                return `https://open.spotify.com/${latest_release.type}/${latest_release.id}`;
+            }
         }
     },
+    SearchMusic: async function () {
+        let token = await GetSpotifyToken();
 
+    }
 }
 
-async function getSpotifyToken() {
+async function GetArtistIdByName(name) {
+    let encodedName = encodeURI(name);
+    let token = await GetSpotifyToken();
+
+    let response = await axios(new Request(`https://api.spotify.com/v1/search?q=${encodedName}&type=artist&limit=1`, token));
+    let artists = response.data.artists.items;
+
+    let artistId;
+    if (artists[0]) {
+        artistId = artists[0].id;
+    }
+
+    return artistId;
+}
+
+async function GetSpotifyToken() {
     const request = {
         method: 'POST',
         url: 'https://accounts.spotify.com/api/token',
@@ -50,29 +69,6 @@ async function getSpotifyToken() {
         }
     }
 
-    let response = await main.sendRequest(request);
+    let response = await axios(request);
     return response.data.access_token;
-}
-
-async function getArtistByName(name) {
-    let encodedName = encodeURI(name);
-    let token = await getSpotifyToken();
-
-    const request = {
-        method: 'GET',
-        url: `https://api.spotify.com/v1/search?q=${encodedName}&type=artist&limit=1`,
-        headers: {
-            'Authorization': 'Bearer ' + token
-        }
-    }
-
-    let response = await main.sendRequest(request);
-    let artists = response.data.artists.items;
-
-    let artistId;
-    if (artists[0]) {
-        artistId = artists[0].id;
-    }
-
-    return artistId;
 }
