@@ -15,6 +15,7 @@ client.once('ready', () => {
     console.log('client ready');
 });
 
+console.log(process.env.Discord_APP_TOKEN);
 client.login(process.env.Discord_APP_TOKEN);
 
 client.on('message', async (message) => {
