@@ -1,11 +1,15 @@
 require('dotenv').config();
+
+/**
+ * Imports
+ */
 const axios = require('axios');
 
 class Request {
     constructor(url, token) {
         this.url = url,
-        this.method = 'GET',
-        this.headers = { 'Authorization': 'Bearer ' + token }
+            this.method = 'GET',
+            this.headers = { 'Authorization': 'Bearer ' + token }
     }
 }
 
@@ -37,17 +41,28 @@ module.exports = {
             }
         }
     },
-    SearchMusic: async function () {
-        let token = await GetSpotifyToken();
+    GetItemByTitle: async function (command, title) {
+        if (title) {
+            let encoded_title = encodeURI(title);
+            let token = await GetSpotifyToken();
+            let response = await axios(new Request(`https://api.spotify.com/v1/search?q=${encoded_title}&type=${command}&limit=1`, token));
 
+            let item = command === 'track'
+                ? response.data.tracks.items[0]
+                : response.data.albums.items[0];
+
+            if (item) {
+                return item.external_urls.spotify;
+            }
+        }
     }
 }
 
 async function GetArtistIdByName(name) {
-    let encodedName = encodeURI(name);
+    let encoded_name = encodeURI(name);
     let token = await GetSpotifyToken();
 
-    let response = await axios(new Request(`https://api.spotify.com/v1/search?q=${encodedName}&type=artist&limit=1`, token));
+    let response = await axios(new Request(`https://api.spotify.com/v1/search?q=${encoded_name}&type=artist&limit=1`, token));
     let artists = response.data.artists.items;
 
     let artistId;

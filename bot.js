@@ -1,41 +1,38 @@
 require('dotenv').config();
 
-const main = require('./main')
+/**
+ * Imports
+ */
 const nba = require('./nba')
 const spotify = require('./spotify')
-
 const discord = require('discord.js');
-const client = new discord.Client();
 
-const Keys = {
-    'DiscordAppToken': process.env.Discord_APP_TOKEN,
-    'BotDevChannelId': process.env.BOT_DEV_CHANNEL_ID,
-}
+const client = new discord.Client();
+const commands = ['help', 'new', 'nba', 'track', 'album']
 
 var currentChannel = null;
 client.once('ready', () => {
     console.log('client ready');
 });
 
-client.login(Keys.DiscordAppToken);
+client.login(process.env.Discord_APP_TOKEN);
 
 client.on('message', message => {
     currentChannel = message.channel;
 
-    if (processMessage(message)) {
+    if (ProcessMessage(message)) {
         let content = message.content;
-        let command = retrieveCommand(content);
-        let arg = retrieveArgument(content);
+        let command = RetrieveCommand(content);
+        let arg = RetrieveArgument(content);
 
         console.log('\ncommand: ' + command);
         console.log('argument: ' + arg);
 
-        runCommand(command, arg);
+        RunCommand(command, arg);
     }
 });
 
-function processMessage(message) {
-    const commands = ['nba', 'new', 'search'];
+function ProcessMessage(message) {
     content = message.content.toLowerCase();
     if (currentChannel && !message.author.bot) {
         for (let i = 0; i <= commands.length; i++) {
@@ -51,7 +48,7 @@ function processMessage(message) {
     return false;
 }
 
-function retrieveCommand(content) {
+function RetrieveCommand(content) {
     let ret = null;
     content = content.toLowerCase();
     let words = content.split(' ');
@@ -63,7 +60,7 @@ function retrieveCommand(content) {
     return ret;
 }
 
-function retrieveArgument(content) {
+function RetrieveArgument(content) {
     let ret = null;
     content = content.trim();
 
@@ -74,19 +71,22 @@ function retrieveArgument(content) {
     return ret;
 }
 
-async function runCommand(command, arg) {
+async function RunCommand(command, arg) {
     let message;
 
     switch (command.toLowerCase()) {
         case 'nba':
-            //message = await nba.getGamesForDate(arg);
+            //message = await nba.GetGamesForDate(arg);
             message = 'This endpoint is off right now, Ill be back on when next season starts'
             break;
         case 'new':
             message = await spotify.GetArtistNewRelease(arg);
             break;
-        case 'search':
-            //message = await spotify.SearchMusic(arg);
+        case 'track':
+            message = await spotify.GetItemByTitle(command, arg);
+            break;
+        case 'album':
+            message = await spotify.GetItemByTitle(command, arg);
             break;
     }
 

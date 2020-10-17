@@ -1,12 +1,17 @@
 require('dotenv').config();
 
-const main = require('./main')
+/**
+ * Imports
+ */
+const axios = require('axios');
 const moment = require('moment-timezone');
-const { performance } = require('perf_hooks');
-const date_format = 'YYYY-MM-DD';
 const discord = require('discord.js');
+const { performance } = require('perf_hooks');
 
-class NBAReq {
+
+const date_format = 'YYYY-MM-DD';
+
+class Request {
     constructor(endpoint, arg) {
         this.method = 'GET'
         this.url = `https://api-nba-v1.p.rapidapi.com/${endpoint}/${arg}`;
@@ -19,27 +24,20 @@ class NBAReq {
 }
 
 module.exports = {
-    getGamesForDate: async function (arg) {
-        let start = performance.now();
-
+    GetGamesForDate: async function (arg) {
         if (!arg) {
             arg = moment().format(date_format);
         }
 
-        let dates = main.getRelativeDates(arg);
+        let dates = GetRelativeDates(arg);
         let trueDate = dates.d1;
         let date = trueDate === moment().format(date_format) ? 'Today' : trueDate;
 
         // send requests 
-        let r1 = performance.now();
-
-        let promises = [
-            main.sendRequest(new NBAReq('games/date', dates.d1)),
-            main.sendRequest(new NBAReq('games/date', dates.d1))
-        ];
-        let responses = await main.sendMultipleRequests(promises);
-        let r2 = performance.now();
-        console.log(`request: ${Math.round(r2 - r1)}ms`)
+        let responses = await axios.all([
+            axios(new Request('games/date', dates.d1)),
+            axios(new Request('games/date', dates.d1))
+        ]);
 
         let games = [];
         responses.forEach((resp) => {
@@ -80,9 +78,23 @@ module.exports = {
         if (games.length === 0) {
             embed.setDescription(`No games scheduled for ${date}`);
         }
-        let end = performance.now();
-        embed.setFooter(`${Math.round(end - start)}ms`)
         return embed;
     }
 }
 
+function GetRelativeDates(dateStr) {
+    let d1 = IsNullOrEmpty(dateStr) 
+        ? moment().format(date_format) 
+        : moment(dateStr).format(date_format);
+
+    let d2 = moment(d1).add(1, 'days').format(date_format);
+
+    return {
+        'd1': d1,
+        'd2': d2
+    };
+}
+
+function IsNullOrEmpty(str) {
+    return (!str || str === '');
+}
