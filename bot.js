@@ -17,7 +17,7 @@ client.once('ready', () => {
 
 client.login(process.env.Discord_APP_TOKEN);
 
-client.on('message', message => {
+client.on('message', async (message) => {
     currentChannel = message.channel;
 
     if (ProcessMessage(message)) {
@@ -28,7 +28,8 @@ client.on('message', message => {
         console.log('\ncommand: ' + command);
         console.log('argument: ' + arg);
 
-        RunCommand(command, arg);
+        await RunCommand(command, arg);
+        VerifySuccess(message);
     }
 });
 
@@ -94,3 +95,14 @@ async function RunCommand(command, arg) {
         currentChannel.send(message);
     }
 }
+
+function VerifySuccess(message) {
+    if (Math.random() < 0.05) {
+        message.reply(process.env.SUCCESS)
+        .then(msg => {
+            msg.delete({ timeout: 1250 });
+        }).catch(e => console.log(e));
+    }
+}
+
+
