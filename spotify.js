@@ -38,8 +38,7 @@ module.exports = {
             }
 
             if (latest_release) {
-                return `New ${artist.name} (${latest_release.release_date})
-                \nhttps://open.spotify.com/${latest_release.type}/${latest_release.id}`;
+                return `https://open.spotify.com/${latest_release.type}/${latest_release.id}`;
             }
         }
     },

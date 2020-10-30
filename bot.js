@@ -13,7 +13,7 @@ const commands = ['help', 'new', 'nba', 'track', 'album'];
 
 var currentChannel = null;
 client.once('ready', () => {
-    console.log('client ready');
+    console.log('client ready\n');
 });
 
 client.login(process.env.DISCORD_APP_TOKEN);
@@ -26,7 +26,8 @@ client.on('message', async (message) => {
         let command = RetrieveCommand(content);
         let arg = RetrieveArgument(content);
 
-        console.log('\ncommand: ' + command);
+        console.log('user: ' + message.author.username);
+        console.log('command: ' + command);
         console.log('argument: ' + arg);
 
         await RunCommand(command, arg);
@@ -74,38 +75,46 @@ function RetrieveArgument(content) {
 }
 
 async function RunCommand(command, arg) {
-    let message;
+    let message = await GenerateMessage(command, arg);
 
+    if (message) {
+        currentChannel.send(message).then(async msg => {
+            await AddReactions(msg, command);
+        });
+    }
+}
+
+async function GenerateMessage(command, arg) {
     switch (command.toLowerCase()) {
         case 'nba':
             //message = await nba.GetGamesForDate(arg);
-            message = 'This endpoint is off right now, Ill be back on when next season starts'
-            break;
+            return 'This endpoint is off right now, Ill be back on when next season starts';
         case 'new':
-            message = await spotify.GetArtistNewRelease(arg);
-            break;
+            return await spotify.GetArtistNewRelease(arg);
         case 'track':
-            message = await spotify.GetItemByTitle(command, arg);
-            break;
+            return await spotify.GetItemByTitle(command, arg);
         case 'album':
-            message = await spotify.GetItemByTitle(command, arg);
-            break;
+            return await spotify.GetItemByTitle(command, arg);
         case 'yt':
-            message = await yt.GetVideoByKeyword(arg);
-            break;
+            return await yt.GetVideoByKeyword(arg);
     }
+}
 
-    if (message) {
-        currentChannel.send(message);
+async function AddReactions(message, command) {
+    switch (command.toLowerCase()) {
+        case 'new':
+            message.react('👍');
+            message.react('👎');
+            break;
     }
 }
 
 function VerifySuccess(message) {
-    if (Math.random() < 0.05) {
+    if (Math.random() < 0.1) {
         message.reply(process.env.SUCCESS)
-        .then(msg => {
-            msg.delete({ timeout: 1250 });
-        }).catch(e => console.log(e));
+            .then(msg => {
+                msg.delete({ timeout: 1250 });
+            }).catch(e => console.log(e));
     }
 }
 
