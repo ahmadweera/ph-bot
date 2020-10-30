@@ -4,6 +4,7 @@ require('dotenv').config();
  * Imports
  */
 const axios = require('axios');
+const discord = require('discord.js');
 
 class Request {
     constructor(url, token) {
@@ -16,12 +17,14 @@ class Request {
 module.exports = {
     GetArtistNewRelease: async function (name) {
         if (name) {
-            let artistId = await GetArtistIdByName(name);
+            let artist = await GetArtistByName(name);
             let token = await GetSpotifyToken();
 
+            console.log(artist);
+
             let responses = await axios.all([
-                axios(new Request(`https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album&limit=1`, token)),
-                axios(new Request(`https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=single&limit=1`, token))
+                axios(new Request(`https://api.spotify.com/v1/artists/${artist.id}/albums?include_groups=album&limit=1`, token)),
+                axios(new Request(`https://api.spotify.com/v1/artists/${artist.id}/albums?include_groups=single&limit=1`, token))
             ]);
 
             let album = responses[0].data.items[0];
@@ -37,7 +40,9 @@ module.exports = {
             }
 
             if (latest_release) {
-                return `https://open.spotify.com/${latest_release.type}/${latest_release.id}`;
+                console.log(latest_release);
+                return `New ${artist.name} (${latest_release.release_date})
+                \nhttps://open.spotify.com/${latest_release.type}/${latest_release.id}`;
             }
         }
     },
@@ -58,19 +63,19 @@ module.exports = {
     }
 }
 
-async function GetArtistIdByName(name) {
+async function GetArtistByName(name) {
     let encoded_name = encodeURI(name);
     let token = await GetSpotifyToken();
 
     let response = await axios(new Request(`https://api.spotify.com/v1/search?q=${encoded_name}&type=artist&limit=1`, token));
     let artists = response.data.artists.items;
 
-    let artistId;
+    let artist;
     if (artists[0]) {
-        artistId = artists[0].id;
+        artist = artists[0];
     }
 
-    return artistId;
+    return artist;
 }
 
 async function GetSpotifyToken() {

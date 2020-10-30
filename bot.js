@@ -3,12 +3,13 @@ require('dotenv').config();
 /**
  * Imports
  */
+const discord = require('discord.js');
 const nba = require('./nba')
 const spotify = require('./spotify')
-const discord = require('discord.js');
+const yt = require('./youtube.js');
 
 const client = new discord.Client();
-const commands = ['help', 'new', 'nba', 'track', 'album']
+const commands = ['help', 'new', 'nba', 'track', 'album'];
 
 var currentChannel = null;
 client.once('ready', () => {
@@ -88,6 +89,9 @@ async function RunCommand(command, arg) {
             break;
         case 'album':
             message = await spotify.GetItemByTitle(command, arg);
+            break;
+        case 'yt':
+            message = await yt.GetVideoByKeyword(arg);
             break;
     }
 
