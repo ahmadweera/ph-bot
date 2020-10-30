@@ -20,8 +20,6 @@ module.exports = {
             let artist = await GetArtistByName(name);
             let token = await GetSpotifyToken();
 
-            console.log(artist);
-
             let responses = await axios.all([
                 axios(new Request(`https://api.spotify.com/v1/artists/${artist.id}/albums?include_groups=album&limit=1`, token)),
                 axios(new Request(`https://api.spotify.com/v1/artists/${artist.id}/albums?include_groups=single&limit=1`, token))
@@ -40,7 +38,6 @@ module.exports = {
             }
 
             if (latest_release) {
-                console.log(latest_release);
                 return `New ${artist.name} (${latest_release.release_date})
                 \nhttps://open.spotify.com/${latest_release.type}/${latest_release.id}`;
             }
