@@ -28,7 +28,7 @@ client.on('message', async (message) => {
 
         console.log('user: ' + message.author.username);
         console.log('command: ' + command);
-        console.log('argument: ' + arg);
+        console.log('argument: ' + arg + '\n');
 
         await RunCommand(command, arg);
         VerifySuccess(message);
