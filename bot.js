@@ -79,7 +79,10 @@ async function RunCommand(command, arg) {
 
     if (message) {
         currentChannel.send(message).then(async msg => {
-            await AddReactions(msg, command);
+            if (command === 'new') {
+                await msg.pin();
+                await ManagePins(currentChannel);
+            }
         });
     }
 }
@@ -87,8 +90,7 @@ async function RunCommand(command, arg) {
 async function GenerateMessage(command, arg) {
     switch (command.toLowerCase()) {
         case 'nba':
-            //message = await nba.GetGamesForDate(arg);
-            return 'This endpoint is off right now, Ill be back on when next season starts';
+           return await nba.GetGamesForDate(arg);
         case 'new':
             return await spotify.GetArtistNewRelease(arg);
         case 'track':
@@ -106,6 +108,20 @@ async function AddReactions(message, command) {
             message.react('👍');
             message.react('👎');
             break;
+    }
+}
+
+async function ManagePins(channel) {
+    const limit = 3;
+    let pinnedMap = await channel.messages.fetchPinned();
+    let botPins = Array.from(pinnedMap.values()).filter(msg => msg.author.bot);
+
+    if (botPins.length > limit ) {
+        let messagesToUnpin = botPins.slice(limit, botPins.length);
+
+        for (let index = 0; index < messagesToUnpin.length; index++) {
+            await messagesToUnpin[index].unpin();
+        }
     }
 }
 
