@@ -90,7 +90,10 @@ module.exports = {
 
         // console.log(arg);
 
+        console.log(Intl.DateTimeFormat().resolvedOptions().timeZone)
+
         let arg = moment().format(date_format, 'America/Toronto');
+        console.log(arg);
 
         let req = {
             'method': 'GET',
