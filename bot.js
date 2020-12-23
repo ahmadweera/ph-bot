@@ -129,6 +129,7 @@ function VerifySuccess(message) {
     if (Math.random() < 0.1) {
         message.reply(process.env.SUCCESS)
             .then(msg => {
+                console.log('Sucessfully Sent.')
                 msg.delete({ timeout: 1250 });
             }).catch(e => console.log(e));
     }
