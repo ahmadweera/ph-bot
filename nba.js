@@ -80,22 +80,7 @@ module.exports = {
     // },
 
     GetGamesForDate: async function () {
-        // arg = arg
-        //     ? moment(arg).format(date_format)
-        //     : moment().format(date_format);
-
-        // let date = (arg === moment().format(date_format))
-        //     ? 'today'
-        //     : moment(arg).format('MMM Do YY');
-
-        // console.log(arg);
-
-        console.log(Intl.DateTimeFormat().resolvedOptions().timeZone)
-
-        let arg = moment().format(date_format, 'America/Toronto');
-        arg = moment.utc().subtract(5, 'hours').format(date_format);
-
-        console.log(arg);
+        let arg = moment.utc().subtract(5, 'hours').format(date_format);
 
         let req = {
             'method': 'GET',
@@ -113,10 +98,8 @@ module.exports = {
             let value = '';
 
             if (game.statusNum === 1) {
-                let time = new Date(game.startTimeUTC).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
                 name = `${game.hTeam.triCode} @ ${game.vTeam.triCode}`;
-                value = "`" + time + "`";
+                value = "`" + game.startTimeEastern + "`";
             }
 
             else if (game.statusNum === 2) {
