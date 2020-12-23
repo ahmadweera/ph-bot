@@ -93,6 +93,8 @@ module.exports = {
         console.log(Intl.DateTimeFormat().resolvedOptions().timeZone)
 
         let arg = moment().format(date_format, 'America/Toronto');
+        arg = moment.utc().subtract(5, 'hours').format(date_format);
+
         console.log(arg);
 
         let req = {
