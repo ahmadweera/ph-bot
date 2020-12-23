@@ -126,7 +126,7 @@ async function ManagePins(channel) {
 }
 
 function VerifySuccess(message) {
-    if (Math.random() < 0.1) {
+    if (Math.random() < 0.05) {
         message.reply(process.env.SUCCESS)
             .then(msg => {
                 console.log('Sucessfully Sent.')
