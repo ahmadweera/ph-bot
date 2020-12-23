@@ -90,7 +90,8 @@ module.exports = {
 
         // console.log(arg);
 
-        let arg = moment().format('YYYYMMDD');
+        let arg = moment().format(date_format);
+        console.log(arg);
 
         let req = {
             'method': 'GET',
