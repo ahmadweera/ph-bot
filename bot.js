@@ -90,7 +90,7 @@ async function RunCommand(command, arg) {
 async function GenerateMessage(command, arg) {
     switch (command.toLowerCase()) {
         case 'nba':
-           return await nba.GetGamesForDate(arg);
+           return await nba.GetGamesForDate();
         case 'new':
             return await spotify.GetArtistNewRelease(arg);
         case 'track':
