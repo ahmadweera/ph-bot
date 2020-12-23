@@ -90,8 +90,7 @@ module.exports = {
 
         // console.log(arg);
 
-        let arg = moment().format(date_format);
-        console.log(arg);
+        let arg = moment().format(date_format, 'America/Toronto');
 
         let req = {
             'method': 'GET',
