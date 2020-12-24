@@ -59,7 +59,7 @@ module.exports = {
 
                 else if (game.statusNum === 3) {
                     name = `${game.hTeam.triCode} @ ${game.vTeam.triCode}`;
-                    value = `${game.hTeam.score} - ${game.hTeam.score} ` + "`FINAL`";
+                    value = `${game.hTeam.score} - ${game.vTeam.score} ` + "`FINAL`";
                 }
 
                 embed.addField(name, value, false);
