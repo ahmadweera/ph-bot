@@ -41,8 +41,8 @@ module.exports = {
                 let name = '';
                 let value = '';
 
-                let hTeamLogo = GetEmojiIdByName(game.hTeam.triCode, emojis);
-                let vTeamLogo = GetEmojiIdByName(game.vTeam.triCode, emojis);
+                let hTeamLogo = GetEmojiByName(game.hTeam.triCode, emojis);
+                let vTeamLogo = GetEmojiByName(game.vTeam.triCode, emojis);
 
                 if (game.statusNum === 1) {
                     name = `${game.hTeam.triCode} ${hTeamLogo}\t:white_small_square:\t${vTeamLogo} ${game.vTeam.triCode} `;
@@ -87,6 +87,6 @@ module.exports = {
     }
 }
 
-function GetEmojiIdByName(name, emojis) {
+function GetEmojiByName(name, emojis) {
     return emojis.cache.find(emoji => emoji.name == name.toLowerCase());
 }
