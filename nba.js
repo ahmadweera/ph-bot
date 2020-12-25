@@ -88,5 +88,5 @@ module.exports = {
 }
 
 function GetEmojiIdByName(name, emojis) {
-    return emojis.cache?.find(emoji => emoji.name == name.toLowerCase());
+    return emojis.cache.find(emoji => emoji.name == name.toLowerCase());
 }
