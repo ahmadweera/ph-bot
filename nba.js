@@ -18,7 +18,7 @@ class Request {
 }
 
 module.exports = {
-    GetGamesForDate: async function (arg) {
+    GetGamesForDate: async function (arg, emojis) {
         let embed = new discord.MessageEmbed();
         let date = arg
             ? moment(new Date(arg))
@@ -41,25 +41,35 @@ module.exports = {
                 let name = '';
                 let value = '';
 
+                let hTeamLogo = GetEmojiIdByName(game.hTeam.triCode, emojis);
+                let vTeamLogo = GetEmojiIdByName(game.vTeam.triCode, emojis);
+
                 if (game.statusNum === 1) {
-                    name = `${game.hTeam.triCode} @ ${game.vTeam.triCode}`;
+                    name = `${game.hTeam.triCode} ${hTeamLogo}\t:white_small_square:\t${vTeamLogo} ${game.vTeam.triCode} `;
                     value = "`" + game.startTimeEastern + "`";
                 }
 
                 else if (game.statusNum === 2) {
-                    name = `${game.hTeam.triCode} @ ${game.vTeam.triCode}`;
-                    value = `${game.hTeam.score} - ${game.vTeam.score} ` + "`";
+                    name = `${game.hTeam.triCode} ${hTeamLogo}\t:white_small_square:\t${vTeamLogo} ${game.vTeam.triCode}`;
+                    value = `${game.hTeam.score} - ${game.vTeam.score}\t`;
 
-                    value += game.period.isHalftime
-                        ? ' HT'
-                        : `${game.clock} [Q${game.period.current}]`;
 
-                    value += "`"
+                    if (game.period.isHalftime) {
+                        value += '\tHT';
+                    }
+                    else {
+                        if (game.clock) {
+                            value += `\`Q${game.period.current} ${game.clock}\``;
+                        }
+                        else {
+                            value += `\`End of Q${game.period.current}\``;
+                        }
+                    }
                 }
 
                 else if (game.statusNum === 3) {
-                    name = `${game.hTeam.triCode} @ ${game.vTeam.triCode}`;
-                    value = `${game.hTeam.score} - ${game.vTeam.score} ` + "`FINAL`";
+                    name = `${game.hTeam.triCode} ${hTeamLogo}\t:white_small_square:\t${vTeamLogo} ${game.vTeam.triCode}`;
+                    value = `${game.hTeam.score} - ${game.vTeam.score}  ` + "`FINAL`";
                 }
 
                 embed.addField(name, value, false);
@@ -75,4 +85,8 @@ module.exports = {
         embed.setDescription('Invalid Date');
         return embed;
     }
+}
+
+function GetEmojiIdByName(name, emojis) {
+    return emojis.cache?.find(emoji => emoji.name == name.toLowerCase());
 }

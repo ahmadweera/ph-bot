@@ -10,17 +10,16 @@ const yt = require('./youtube.js');
 
 const client = new discord.Client();
 const commands = ['help', 'new', 'nba', 'track', 'album'];
+var emojis;
 
-var currentChannel = null;
 client.once('ready', () => {
     console.log('client ready\n');
+    emojis = client.guilds.cache.get(process.env.DISCORD_SERVER_ID).emojis;
 });
 
 client.login(process.env.DISCORD_APP_TOKEN);
 
 client.on('message', async (message) => {
-    currentChannel = message.channel;
-
     if (ProcessMessage(message)) {
         let content = message.content;
         let command = RetrieveCommand(content);
@@ -30,14 +29,14 @@ client.on('message', async (message) => {
         console.log('command: ' + command);
         console.log('argument: ' + arg + '\n');
 
-        await RunCommand(command, arg);
+        await RunCommand(command, arg, message.channel);
         VerifySuccess(message);
     }
 });
 
 function ProcessMessage(message) {
     content = message.content.toLowerCase();
-    if (currentChannel && !message.author.bot) {
+    if (!message.author.bot) {
         for (let i = 0; i <= commands.length; i++) {
             let command = commands[i];
             if (content.startsWith(command)) {
@@ -74,14 +73,14 @@ function RetrieveArgument(content) {
     return ret;
 }
 
-async function RunCommand(command, arg) {
+async function RunCommand(command, arg, channel) {
     let message = await GenerateMessage(command, arg);
 
     if (message) {
-        currentChannel.send(message).then(async msg => {
+        channel.send(message).then(async msg => {
             if (command === 'new') {
                 await msg.pin();
-                await ManagePins(currentChannel);
+                await ManagePins(channel);
             }
         });
     }
@@ -90,7 +89,7 @@ async function RunCommand(command, arg) {
 async function GenerateMessage(command, arg) {
     switch (command.toLowerCase()) {
         case 'nba':
-           return await nba.GetGamesForDate(arg);
+           return await nba.GetGamesForDate(arg, emojis);
         case 'new':
             return await spotify.GetArtistNewRelease(arg);
         case 'track':
@@ -126,7 +125,7 @@ async function ManagePins(channel) {
 }
 
 function VerifySuccess(message) {
-    if (Math.random() < 0.05) {
+    if (Math.random() < 0.02) {
         message.reply(process.env.SUCCESS)
             .then(msg => {
                 console.log('Sucessfully Sent.')
