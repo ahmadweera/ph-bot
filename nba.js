@@ -6,16 +6,17 @@ require('dotenv').config();
 const moment = require('moment-timezone');
 const puppeteer = require('puppeteer')
 const user_date_format = 'MMM Do YYYY';
+const nba_date_format = 'YYYY-MM-DD';
 
 module.exports = {
     GetGamesForDate: async function (arg) {
-        await ScreenshotScores();
-
+    
         let date = arg
             ? moment(new Date(arg))
             : moment().tz("America/Toronto");
 
         if (date.isValid()) {
+            await ScreenshotScores(date);
             return `Games for ${date.format(user_date_format)}`;
         } 
 
@@ -23,7 +24,7 @@ module.exports = {
     }
 }
 
-async function ScreenshotScores() {
+async function ScreenshotScores(date) {
     (async () => {
         const browser = await puppeteer.launch({
             headless: true,
@@ -33,8 +34,14 @@ async function ScreenshotScores() {
             ]
         });
         const page = await browser.newPage();
-        await page.goto('https://ca.global.nba.com/scores/');
 
+        if (date) {
+            console.log(date, date.format(nba_date_format));
+            await page.goto(`https://ca.global.nba.com/scores/#!/${date.format(nba_date_format)}`);
+        } else {
+            await page.goto(`https://ca.global.nba.com/scores/`);
+        }
+        
         await page.waitForSelector('#onetrust-accept-btn-handler');
         await page.click('#onetrust-accept-btn-handler');
 
