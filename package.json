@@ -9,12 +9,13 @@
   "author": "Ahmad Weera",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.20.0",
+    "axios": "^0.21.1",
     "discord.js": "^12.5.1",
     "dotenv": "^8.2.0",
     "eslint": "^7.15.0",
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.32",
-    "nodemon": "^2.0.6"
+    "nodemon": "^2.0.6",
+    "puppeteer": "^5.5.0"
   }
 }

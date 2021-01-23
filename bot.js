@@ -10,11 +10,9 @@ const yt = require('./youtube.js');
 
 const client = new discord.Client();
 const commands = ['help', 'new', 'nba', 'track', 'album'];
-var emojis;
 
 client.once('ready', () => {
     console.log('client ready\n');
-    emojis = client.guilds.cache.get(process.env.DISCORD_SERVER_ID).emojis;
 });
 
 client.login(process.env.DISCORD_APP_TOKEN);
@@ -77,19 +75,27 @@ async function RunCommand(command, arg, channel) {
     let message = await GenerateMessage(command, arg);
 
     if (message) {
-        channel.send(message).then(async msg => {
-            if (command === 'new') {
-                await msg.pin();
-                await ManagePins(channel);
-            }
-        });
+        switch (command.toLowerCase()) {
+            case 'nba':
+                await channel.send(message, {files: ['screenshots/scores.png']});
+                break;
+            case 'new':
+                await channel.send(message).then(async msg => {
+                    await msg.pin();
+                    await ManagePins(channel);
+                });
+                break;
+            default:
+                await channel.send(message);
+                break;
+        }
     }
 }
 
 async function GenerateMessage(command, arg) {
     switch (command.toLowerCase()) {
         case 'nba':
-           return await nba.GetGamesForDate(arg, emojis);
+            return await nba.GetGamesForDate(arg);
         case 'new':
             return await spotify.GetArtistNewRelease(arg);
         case 'track':
@@ -115,7 +121,7 @@ async function ManagePins(channel) {
     let pinnedMap = await channel.messages.fetchPinned();
     let botPins = Array.from(pinnedMap.values()).filter(msg => msg.author.bot);
 
-    if (botPins.length > limit ) {
+    if (botPins.length > limit) {
         let messagesToUnpin = botPins.slice(limit, botPins.length);
 
         for (let index = 0; index < messagesToUnpin.length; index++) {
