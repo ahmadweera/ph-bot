@@ -31,6 +31,7 @@ async function ScreenshotScores(date) {
             args: [
                 '--disable-extensions-except=/path/to/manifest/folder/',
                 '--load-extension=/path/to/manifest/folder/',
+                '--no-sandbox'
             ]
         });
         const page = await browser.newPage();
