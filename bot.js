@@ -37,8 +37,7 @@ client.ws.on("INTERACTION_CREATE", async interaction => {
             break;
     }
 
-    channel.send(`${interaction.data.name}: ${option.value}`)
-        .then(() => channel.send(message))
+    channel.send(`${interaction.data.name}: ${option.value}\n${message}`)
         .catch(console.error);
 });
 
