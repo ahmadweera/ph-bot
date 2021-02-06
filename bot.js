@@ -35,12 +35,11 @@ client.ws.on("INTERACTION_CREATE", async interaction => {
         case 'album':
             message = await spotify.GetItemByTitle(interaction.data.name, option.value);
             break;
-        case 'yt':
-            message = await yt.GetVideoByKeyword(option.value);
-            break;
     }
 
-    channel.send(message).catch(console.error);
+    channel.send(`${interaction.data.name}: ${option.value}`)
+        .then(() => channel.send(message))
+        .catch(console.error);
 });
 
 client.on('message', async (message) => {
