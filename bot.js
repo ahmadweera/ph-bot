@@ -17,6 +17,32 @@ client.once('ready', () => {
 
 client.login(process.env.DISCORD_APP_TOKEN);
 
+client.ws.on("INTERACTION_CREATE", async interaction => {
+    const channel = client.channels.cache.get(interaction.channel_id);
+    const option = interaction.data.options[0];
+
+    let message = "";
+    switch (interaction.data.name) {
+        case 'nba':
+            message = await nba.GetGamesForDate(option.value);
+            break;
+        case 'new':
+            message = await spotify.GetArtistNewRelease(option.value);
+            break;
+        case 'track':
+            message = await spotify.GetItemByTitle(interaction.data.name, option.value);
+            break;
+        case 'album':
+            message = await spotify.GetItemByTitle(interaction.data.name, option.value);
+            break;
+        case 'yt':
+            message = await yt.GetVideoByKeyword(option.value);
+            break;
+    }
+
+    channel.send(message).catch(console.error);
+});
+
 client.on('message', async (message) => {
     if (ProcessMessage(message)) {
         let content = message.content;
@@ -77,7 +103,7 @@ async function RunCommand(command, arg, channel) {
     if (message) {
         switch (command.toLowerCase()) {
             case 'nba':
-                await channel.send(message, {files: ['screenshots/scores.png']});
+                await channel.send(message, { files: ['screenshots/scores.png'] });
                 break;
             case 'new':
                 await channel.send(message).then(async msg => {
