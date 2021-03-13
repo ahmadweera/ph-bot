@@ -16,7 +16,6 @@ client.once('ready', () => {
 client.login(process.env.DISCORD_APP_TOKEN);
 
 client.ws.on("INTERACTION_CREATE", async interaction => {
-    const channel = client.channels.cache.get(interaction.channel_id);
     const option = interaction.data.options[0];
 
     let message = "";
@@ -39,11 +38,19 @@ client.ws.on("INTERACTION_CREATE", async interaction => {
     console.log('command: ' + interaction.data.name);
     console.log('argument: ' + option.value + '\n');
 
-    channel.send(`<@${interaction.member.user.id}> ${interaction.data.name}: ${option.value}\n${message}`)
+    client.api.interactions(interaction.id, interaction.token).callback.post({ 
+        data: { 
+            type: 4, 
+            data: {
+                tts: false,
+                content: `<@${interaction.member.user.id}> **${interaction.data.name}** ${message}`
+            }
+        } 
+    });
 });
 
 client.on('message', async (message) => {
-    // todo do something
+    // todo something
 });
 
 async function ManagePins(channel) {

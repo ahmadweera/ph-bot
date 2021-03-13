@@ -38,7 +38,7 @@ module.exports = {
             }
 
             if (latest_release) {
-                return `https://open.spotify.com/${latest_release.type}/${latest_release.id}`;
+                return `${artist.name}\nhttps://open.spotify.com/${latest_release.type}/${latest_release.id}`;
             }
         }
     },
@@ -53,7 +53,7 @@ module.exports = {
                 : response.data.albums.items[0];
 
             if (item) {
-                return item.external_urls.spotify;
+                return `${item.name}\n${item.external_urls.spotify}`;
             }
         }
     }
