@@ -43,7 +43,7 @@ client.ws.on("INTERACTION_CREATE", async interaction => {
             type: 4, 
             data: {
                 tts: false,
-                content: `<@${interaction.member.user.id}> **${interaction.data.name}** ${message}`
+                content: `${message}`
             }
         } 
     });
