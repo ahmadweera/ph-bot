@@ -37,7 +37,11 @@ client.ws.on("INTERACTION_CREATE", async interaction => {
             break;
     }
 
-    console.log('user: ' + interaction.user.username);
+    let username = interaction.user
+        ? interaction.user.username
+        : interaction.member.user.username;
+
+    console.log('user: ' + username);
     console.log('command: ' + interaction.data.name);
     console.log('argument: ' + argument + '\n');
 
@@ -47,8 +51,7 @@ client.ws.on("INTERACTION_CREATE", async interaction => {
             data: {
                 content: '',
                 embeds: [],
-                tts: false,
-                flags: 64,
+                tts: false
             }
         }
     };
