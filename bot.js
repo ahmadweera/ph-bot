@@ -16,37 +16,46 @@ client.once('ready', () => {
 client.login(process.env.DISCORD_APP_TOKEN);
 
 client.ws.on("INTERACTION_CREATE", async interaction => {
-    const option = interaction.data.options[0];
+    const command = interaction.data.name;
+    const argument = interaction.data.options
+        ? interaction.data.options[0].value
+        : null;
 
-    let message = "";
+    let message = '';
     switch (interaction.data.name) {
         case 'nba':
-            message = await nba.GetGamesForDate(option.value);
+            message = await nba.GetGamesForDate(argument);
             break;
         case 'new':
-            message = await spotify.GetArtistNewRelease(option.value);
+            message = await spotify.GetArtistNewRelease(argument);
             break;
         case 'track':
-            message = await spotify.GetItemByTitle(interaction.data.name, option.value);
+            message = await spotify.GetItemByTitle(command, argument);
             break;
         case 'album':
-            message = await spotify.GetItemByTitle(interaction.data.name, option.value);
+            message = await spotify.GetItemByTitle(command, argument);
             break;
     }
 
-    console.log('user: ' + interaction.member.user.username);
+    console.log('user: ' + interaction.user.username);
     console.log('command: ' + interaction.data.name);
-    console.log('argument: ' + option.value + '\n');
+    console.log('argument: ' + argument + '\n');
 
-    client.api.interactions(interaction.id, interaction.token).callback.post({ 
-        data: { 
-            type: 4, 
+    let res = {
+        data: {
+            type: 4,
             data: {
+                content: '',
+                embeds: [],
                 tts: false,
-                content: `${message}`
+                flags: 64,
             }
-        } 
-    });
+        }
+    };
+
+    if (typeof message === "string") { res.data.data.content = message; }
+    else { res.data.data.embeds = [message]; }
+    client.api.interactions(interaction.id, interaction.token).callback.post(res);
 });
 
 client.on('message', async (message) => {

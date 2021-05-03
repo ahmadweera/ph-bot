@@ -1,63 +1,83 @@
-require('dotenv').config();
-
 /**
  * Imports
  */
-const moment = require('moment-timezone');
-const puppeteer = require('puppeteer')
-const user_date_format = 'MMM Do YYYY';
-const nba_date_format = 'YYYY-MM-DD';
-
-module.exports = {
-    GetGamesForDate: async function (arg) {
-    
-        let date = arg
-            ? moment(new Date(arg))
-            : moment().tz("America/Toronto");
-
-        if (date.isValid()) {
-            await ScreenshotScores(date);
-            return `Games for ${date.format(user_date_format)}`;
-        } 
-
-        return 'Invalid Date';
-    }
-}
-
-async function ScreenshotScores(date) {
-    (async () => {
-        const browser = await puppeteer.launch({
-            headless: true,
-            args: [
-                '--disable-extensions-except=/path/to/manifest/folder/',
-                '--load-extension=/path/to/manifest/folder/',
-                '--no-sandbox'
-            ]
-        });
-        const page = await browser.newPage();
-
-        if (date) {
-            console.log(date, date.format(nba_date_format));
-            await page.goto(`https://ca.global.nba.com/scores/#!/${date.format(nba_date_format)}`);
-        } else {
-            await page.goto(`https://ca.global.nba.com/scores/`);
-        }
-        
-        await page.waitForSelector('#onetrust-accept-btn-handler');
-        await page.click('#onetrust-accept-btn-handler');
-
-        page.on('dialog', async dialog => {
-            console.log(dialog.message());
-            await dialog.dismiss();
-        });
-
-        await page.waitForTimeout(1000);
-
-        await page.waitForSelector('#main-container > div > div.col-xl-8.col-lg-12.content-container > div.content > section > div > div > div.col-sm-12');
-        const element = await page.$('#main-container > div > div.col-xl-8.col-lg-12.content-container > div.content > section > div > div > div.col-sm-12');
-
-        await element.screenshot({ path: 'screenshots/scores.png' });
-        await page.close();
-        await browser.close();
-    })();
-}
+ const axios = require('axios');
+ const moment = require('moment-timezone');
+ const discord = require('discord.js');
+ 
+ const date_format = 'YYYYMMDD';
+ const user_date_format = 'MMM Do YYYY';
+ 
+ class Request {
+     constructor(arg) {
+         this.method = 'GET';
+         this.url = `http://data.nba.net/prod/v1/${arg}/scoreboard.json`;
+     }
+ }
+ 
+ module.exports = {
+     GetGamesForDate: async function (arg) {
+         let embed = new discord.MessageEmbed();
+         let date = arg
+             ? moment(new Date(arg))
+             : moment().tz("America/Toronto");
+ 
+         if (date.isValid()) {
+             const resp = await axios(new Request(date.format(date_format)))
+             .catch(async function (error) {
+                 embed.setDescription('API Error, Couldn\'t Process Date');
+             });
+ 
+             let games = resp
+                 ? resp.data.games
+                 : [];
+ 
+             embed = new discord.MessageEmbed();
+             embed.setTitle(`Games for ${date.format(user_date_format)}`);
+ 
+             games.forEach((game) => {
+                 let name = '';
+                 let value = '';
+ 
+                 if (game.statusNum === 1) {
+                     name = `${game.hTeam.triCode} \t:white_small_square:\t ${game.vTeam.triCode} `;
+                     value = "`" + game.startTimeEastern + "`";
+                 }
+ 
+                 else if (game.statusNum === 2) {
+                     name = `${game.hTeam.triCode} \t:white_small_square:\t ${game.vTeam.triCode}`;
+                     value = `${game.hTeam.score} - ${game.vTeam.score}\t`;
+ 
+ 
+                     if (game.period.isHalftime) {
+                         value += '\tHT';
+                     }
+                     else {
+                         if (game.clock) {
+                             value += `\`Q${game.period.current} ${game.clock}\``;
+                         }
+                         else {
+                             value += `\`End of Q${game.period.current}\``;
+                         }
+                     }
+                 }
+ 
+                 else if (game.statusNum === 3) {
+                     name = `${game.hTeam.triCode} \t:white_small_square:\t ${game.vTeam.triCode}`;
+                     value = `${game.hTeam.score} - ${game.vTeam.score}  ` + "`FINAL`";
+                 }
+ 
+                 embed.addField(name, value, false);
+             });
+ 
+             if (games.length === 0) {
+                 embed.setDescription('No games scheduled');
+             }
+ 
+             return embed;
+         }
+ 
+         embed.setDescription('Invalid Date');
+         return embed;
+     }
+ }
