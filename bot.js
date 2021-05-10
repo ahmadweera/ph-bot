@@ -4,17 +4,23 @@ require('dotenv').config();
  * Imports
  */
 const discord = require('discord.js');
-const nba = require('./nba')
-const spotify = require('./spotify')
+const nba = require('./nba');
+const spotify = require('./spotify');
+const storage = require('./storage');
 
 const client = new discord.Client();
+const sqlite3 = require('sqlite3').verbose();
 
+// create db
+var db = new sqlite3.Database('ph.db', (err) => { if (err) console.log(err) });
+storage.InitDB(db);
+
+const client = new discord.Client();
 client.once('ready', () => {
     console.log('client ready\n');
 });
 
 client.login(process.env.DISCORD_APP_TOKEN);
-
 client.ws.on("INTERACTION_CREATE", async interaction => {
     const command = interaction.data.name;
     const argument = interaction.data.options
@@ -37,14 +43,6 @@ client.ws.on("INTERACTION_CREATE", async interaction => {
             break;
     }
 
-    let username = interaction.user
-        ? interaction.user.username
-        : interaction.member.user.username;
-
-    console.log('user: ' + username);
-    console.log('command: ' + interaction.data.name);
-    console.log('argument: ' + argument + '\n');
-
     let res = {
         data: {
             type: 4,
@@ -59,6 +57,12 @@ client.ws.on("INTERACTION_CREATE", async interaction => {
     if (typeof message === "string") { res.data.data.content = message; }
     else { res.data.data.embeds = [message]; }
     client.api.interactions(interaction.id, interaction.token).callback.post(res);
+
+    let user = interaction.user
+        ? interaction.user
+        : interaction.member.user;
+    let serverId = interaction.guild_id;
+    storage.SaveCommand(db, serverId, user, command, argument);
 });
 
 client.on('message', async (message) => {
