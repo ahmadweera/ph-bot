@@ -15,7 +15,6 @@ const sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database('ph.db', (err) => { if (err) console.log(err) });
 storage.InitDB(db);
 
-const client = new discord.Client();
 client.once('ready', () => {
     console.log('client ready\n');
 });
