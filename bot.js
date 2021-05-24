@@ -31,7 +31,7 @@ client.ws.on("INTERACTION_CREATE", async interaction => {
     let message = '';
     switch (interaction.data.name) {
         case 'nba':
-            message = await nba.GetGamesForDate(argument);
+            message = await nba.GetGamesForDate(argument, emojis);
             break;
         case 'new':
             message = await spotify.GetArtistNewRelease(argument);
