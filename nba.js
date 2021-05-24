@@ -42,43 +42,34 @@ module.exports = {
                 var hSeriesW = "";
                 var vSeriesW = "";
                 if (game.playoffs) {
-                    if (game.playoffs.hTeam.seriesWin != 0) {
-                        hSeriesW = game.playoffs.hTeam.seriesWin;
-                    }
-
-                    if (game.playoffs.vTeam.seriesWin != 0) {
-                        vSeriesW = game.playoffs.vTeam.seriesWin;
-                    }
+                    hSeriesW = game.playoffs.hTeam.seriesWin;
+                    vSeriesW = game.playoffs.vTeam.seriesWin;
                 }
 
+                var icon = game.statusNum === 3
+                    ? game.hTeam.score > game.vTeam.score
+                        ? "arrow_left"
+                        : "arrow_right"
+                    : "white_small_square";
+
+                name = `${game.hTeam.triCode} - ${hSeriesW} \t:${icon}:\t ${vSeriesW} - ${game.vTeam.triCode} `;
+
                 if (game.statusNum === 1) {
-                    name = `${game.hTeam.triCode} ${hSeriesW} \t:white_small_square:\t ${vSeriesW} ${game.vTeam.triCode} `;
                     value = "`" + game.startTimeEastern + "`";
                 }
 
                 else if (game.statusNum === 2) {
-                    name = `${game.hTeam.triCode} ${hSeriesW} \t:white_small_square:\t ${vSeriesW} ${game.vTeam.triCode} `;
                     value = `${game.hTeam.score} - ${game.vTeam.score}\t`;
 
-                    if (game.period.isHalftime) {
-                        value += '\tHT';
-                    }
+                    if (game.period.isHalftime) { value += '\tHT'; }
                     else {
-                        if (game.clock) {
-                            value += `\`Q${game.period.current} ${game.clock}\``;
-                        }
-                        else {
-                            value += `\`End of Q${game.period.current}\``;
-                        }
+                        value += game.clock
+                            ? `\`Q${game.period.current} ${game.clock}\``
+                            : `\`End of Q${game.period.current}\``;
                     }
                 }
 
                 else if (game.statusNum === 3) {
-                    var icon = game.hTeam.score > game.vTeam.score
-                        ? "arrow_left"
-                        : "arrow_right";
-
-                    name = `${game.hTeam.triCode} ${hSeriesW} \t:${icon}:\t ${vSeriesW} ${game.vTeam.triCode} `;
                     value = `${game.hTeam.score} - ${game.vTeam.score}  ` + "`FINAL`";
                 }
 
