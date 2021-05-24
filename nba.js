@@ -16,7 +16,7 @@
  }
  
  module.exports = {
-     GetGamesForDate: async function (arg) {
+     GetGamesForDate: async function (arg, emojis) {
          let embed = new discord.MessageEmbed();
          let date = arg
              ? moment(new Date(arg))
@@ -36,22 +36,29 @@
              embed.setTitle(`Games for ${date.format(user_date_format)}`);
  
              games.forEach((game) => {
-                 console.log(game);
                  let name = '';
                  let value = '';
  
-                 let hteam = game.hTeam.triCode;
-                 let vteam = game.vTeam.triCode;
+                 const hlogo = emojis.cache.find(emoji => emoji.name === game.hTeam.triCode);
+                 const vlogo = emojis.cache.find(emoji => emoji.name === game.vTeam.triCode);
+                 const hseriesw = emojis.cache.find(emoji => emoji.name === game.playoffs.hTeam.seriesWin + "_");
+                 const vseriesw = emojis.cache.find(emoji => emoji.name === game.playoffs.vTeam.seriesWin + "_");
+                 const left = emojis.cache.find(emoji => emoji.name === "left");
+                 const right = emojis.cache.find(emoji => emoji.name === "right");
+                 const vs = emojis.cache.find(emoji => emoji.name === "vs");
+ 
+                 let hteam = `<:${hlogo.name}:${hlogo.id}>`;
+                 let vteam = `<:${vlogo.name}:${vlogo.id}>`;
                  if (game.playoffs) {
-                     hteam = `${hteam} - ${game.playoffs.hTeam.seriesWin}`;
-                     vteam = `${game.playoffs.vTeam.seriesWin} - ${vteam}`;
+                     hteam = `${hteam} <:${hseriesw.name}:${hseriesw.id}>`;
+                     vteam = `<:${vseriesw.name}:${vseriesw.id}> ${vteam}`;
                  }
  
-                 let icon = game.statusNum === 3
+                 const icon = game.statusNum === 3
                      ? game.hTeam.score > game.vTeam.score
-                         ? ":arrow_forward:"
-                         : ":arrow_backward:"
-                     : ":white_small_square:";
+                         ? `<:${left.name}:${left.id}>`
+                         : `<:${right.name}:${right.id}>`
+                     : `<:${vs.name}:${vs.id}>`;
  
                  name = `${hteam} \t${icon}\t ${vteam}`;
  

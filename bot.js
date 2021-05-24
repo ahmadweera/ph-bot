@@ -15,7 +15,9 @@ const sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database('ph.db', (err) => { if (err) console.log(err) });
 storage.InitDB(db);
 
+var emojis;
 client.once('ready', () => {
+    emojis = client.emojis;
     console.log('client ready\n');
 });
 
