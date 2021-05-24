@@ -63,7 +63,11 @@
                  }
  
                  else if (game.statusNum === 3) {
-                     name = `${game.hTeam.triCode} \t:white_small_square:\t ${game.vTeam.triCode}`;
+                     var icon = game.hTeam.score > game.vTeam.score
+                        ? "arrow_left"
+                        : "arrow_right";
+                        
+                     name = `${game.hTeam.triCode} \t:${icon}:\t ${game.vTeam.triCode}`;
                      value = `${game.hTeam.score} - ${game.vTeam.score}  ` + "`FINAL`";
                  }
  
