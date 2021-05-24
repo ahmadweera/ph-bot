@@ -41,8 +41,6 @@ module.exports = {
 
                 const hlogo = emojis.cache.find(emoji => emoji.name === game.hTeam.triCode);
                 const vlogo = emojis.cache.find(emoji => emoji.name === game.vTeam.triCode);
-                const hseriesw = emojis.cache.find(emoji => emoji.name === game.playoffs.hTeam.seriesWin + "_");
-                const vseriesw = emojis.cache.find(emoji => emoji.name === game.playoffs.vTeam.seriesWin + "_");
                 const left = emojis.cache.find(emoji => emoji.name === "left");
                 const right = emojis.cache.find(emoji => emoji.name === "right");
                 const vs = emojis.cache.find(emoji => emoji.name === "vs");
@@ -50,6 +48,8 @@ module.exports = {
                 let hteam = `<:${hlogo.name}:${hlogo.id}>`;
                 let vteam = `<:${vlogo.name}:${vlogo.id}>`;
                 if (game.playoffs) {
+                    const hseriesw = emojis.cache.find(emoji => emoji.name === game.playoffs.hTeam.seriesWin + "_");
+                    const vseriesw = emojis.cache.find(emoji => emoji.name === game.playoffs.vTeam.seriesWin + "_");
                     hteam = `${hteam} <:${hseriesw.name}:${hseriesw.id}>`;
                     vteam = `<:${vseriesw.name}:${vseriesw.id}> ${vteam}`;
                 }
