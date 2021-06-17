@@ -3,11 +3,9 @@ require('dotenv').config();
 /**
  * Imports
  */
-const discord = require('discord.js');
-const nba = require('./nba');
-const spotify = require('./spotify');
-const storage = require('./storage');
-const football = require('./futbol');
+const discord = require('discord.js')
+const commands = require('./commands/commands.js')
+const storage = require('./storage.js');
 
 const client = new discord.Client();
 const sqlite3 = require('sqlite3').verbose();
@@ -31,20 +29,20 @@ client.ws.on("INTERACTION_CREATE", async interaction => {
 
     let message = '';
     switch (interaction.data.name) {
-        case 'nba':
-            message = await nba.GetGamesForDate(argument, emojis);
-            break;
         case 'new':
-            message = await spotify.GetArtistNewRelease(argument);
+            message = await commands.GetNewRelease(argument);
             break;
         case 'track':
-            message = await spotify.GetItemByTitle(command, argument);
+            message = await commands.GetItem(command, argument);
             break;
         case 'album':
-            message = await spotify.GetItemByTitle(command, argument);
+            message = await commands.GetItem(command, argument);
+            break;
+        case 'nba':
+            message = await commands.GetGames(argument, emojis);
             break;
         case 'futbol':
-            message = await football.GetScores(argument, emojis);
+            message = await commands.GetMatches(argument, emojis);
             break;
     }
 
