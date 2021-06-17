@@ -22,7 +22,7 @@ module.exports = {
                 url: 'https://api-football-v1.p.rapidapi.com/v3/fixtures',
                 params: { league: '4', date: date.format(date_format),  league: 4, season: '2020' },
                 headers: {
-                    'x-rapidapi-key': process.env.SPOTIFY_CLIENT_ID,
+                    'x-rapidapi-key': process.env.RAPID_API_KEY,
                     'x-rapidapi-host': 'api-football-v1.p.rapidapi.com'
                 }
             };
