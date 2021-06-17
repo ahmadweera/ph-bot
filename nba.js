@@ -58,10 +58,22 @@
                          : `<:${right.name}:${right.id}>`
                      : `<:${vs.name}:${vs.id}>`;
  
-                 name = `${hteam}  ${game.hTeam.score} \t${icon}\t ${game.vTeam.score}  ${vteam}`;
+                 if (!game.hTeam.score) {
+                     game.hTeam.score = " -";
+                 }
+ 
+                 if (!game.vTeam.score) {
+                     game.vTeam.score = "- ";
+                 }
+ 
+                 name = `${hteam}\t${game.hTeam.score}\t\t${icon}\t\t${game.vTeam.score}\t${vteam}`;
  
                  if (game.statusNum === 1) {
-                     value = "`" + game.startTimeEastern + "`";
+                     let summary;
+                     if (game.playoffs) {
+                         summary = ` (${game.playoffs.seriesSummaryText})`;
+                     }
+                     value = "`" + game.startTimeEastern + summary + "`";
                  }
  
                  else if (game.statusNum === 2) {
@@ -75,7 +87,7 @@
                  else if (game.statusNum === 3) {
                      let summary = "";
                      if (game.playoffs) {
-                         summary = " - " + game.playoffs.seriesSummaryText;
+                         summary = ` (${game.playoffs.seriesSummaryText})`;
                      }
  
                      value = `\`FINAL${summary}\`\t`;
