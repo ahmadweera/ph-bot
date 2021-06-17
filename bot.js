@@ -7,6 +7,7 @@ const discord = require('discord.js');
 const nba = require('./nba');
 const spotify = require('./spotify');
 const storage = require('./storage');
+const football = require('./football');
 
 const client = new discord.Client();
 const sqlite3 = require('sqlite3').verbose();
@@ -41,6 +42,9 @@ client.ws.on("INTERACTION_CREATE", async interaction => {
             break;
         case 'album':
             message = await spotify.GetItemByTitle(command, argument);
+            break;
+        case 'football':
+            message = await football.GetScores(argument, emojis);
             break;
     }
 
