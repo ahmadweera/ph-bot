@@ -3,7 +3,6 @@ require('dotenv').config();
 const axios = require('axios');
 const moment = require('moment-timezone');
 const discord = require('discord.js');
-
 const date_format = 'YYYY-MM-DD';
 const user_date_format = 'MMM Do YYYY';
 
@@ -15,6 +14,7 @@ module.exports = {
             : moment().tz("America/Toronto");
 
         if (date.isValid()) {
+            date = moment(date).utc();
             embed.setTitle(`Matches for ${date.format(user_date_format)}`);
 
             const req = {
@@ -36,25 +36,27 @@ module.exports = {
                 : [];
 
             matches.forEach(match => {
-                let gameStatus = match.fixture.status;
-                let homeTeam = match.teams.home;
-                let awayTeam = match.teams.away;
+                const gameStatus = match.fixture.status;
+                const homeTeam = match.teams.home;
+                const awayTeam = match.teams.away;
                 const hlogo = emojis.cache.find(emoji => emoji.name == homeTeam.name.replace(/ /g, ''));
                 const vlogo = emojis.cache.find(emoji => emoji.name == awayTeam.name.replace(/ /g, ''));
+                const gametime = moment(match.fixture.date).tz("America/Toronto").format('LT');
 
                 let name = "";
                 let value = "";
+                console.log(matches[2]);
                 if (gameStatus.short == 'NS') {
                     name = `${hlogo} ${homeTeam.name}\tvs\t${awayTeam.name} ${vlogo}`;
-                    value = "`" + gameStatus.long + "`";
+                    value = "`" + gametime + "`";
                 }
                 else if (gameStatus.short == 'FT') {
                     name = `${hlogo} ${homeTeam.name}\t${match.goals.home}\tvs\t ${match.goals.away}\t${awayTeam.name} ${vlogo}`;
-                    value = "`" + gameStatus.long + "`";
+                    value = "`" + gameStatus.short + ` ${gameStatus.elapsed}'` +"`";
                 }
                 else {
                     name = `${hlogo} ${homeTeam.name}\t${match.goals.home}\tvs\t ${match.goals.away}\t${awayTeam.name} ${vlogo}`;
-                    value = "`" + gameStatus.elapsed;
+                    value = "`Live " + gameStatus.elapsed + "'`";
                 }
 
                 embed.addField(name, value, false);

@@ -43,7 +43,7 @@ client.ws.on("INTERACTION_CREATE", async interaction => {
         case 'album':
             message = await spotify.GetItemByTitle(command, argument);
             break;
-        case 'football':
+        case 'futbol':
             message = await football.GetScores(argument, emojis);
             break;
     }
