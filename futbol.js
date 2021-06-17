@@ -45,7 +45,6 @@ module.exports = {
 
                 let name = "";
                 let value = "";
-                console.log(matches[2]);
                 if (gameStatus.short == 'NS') {
                     name = `${hlogo} ${homeTeam.name}\tvs\t${awayTeam.name} ${vlogo}`;
                     value = "`" + gametime + "`";

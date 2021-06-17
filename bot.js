@@ -7,7 +7,7 @@ const discord = require('discord.js');
 const nba = require('./nba');
 const spotify = require('./spotify');
 const storage = require('./storage');
-const football = require('./football');
+const football = require('./futbol');
 
 const client = new discord.Client();
 const sqlite3 = require('sqlite3').verbose();
