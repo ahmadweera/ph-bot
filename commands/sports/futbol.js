@@ -42,27 +42,25 @@ module.exports = {
                 const awayTeam = match.teams.away;
                 const hlogo = emojis.cache.find(emoji => emoji.name == homeTeam.name.replace(/ /g, ''));
                 const vlogo = emojis.cache.find(emoji => emoji.name == awayTeam.name.replace(/ /g, ''));
-                const gametime = moment(match.fixture.date).tz("America/Toronto").format('LT');
+                const gametime = moment(match.fixture.date).tz("America/Toronto").format('h:mma');
 
                 let name = "";
                 let value = "";
                 if (gameStatus.short == 'NS') {
-                    name = `${hlogo} ${homeTeam.name}\tvs\t${awayTeam.name} ${vlogo}`;
+                    name = `${hlogo} ${homeTeam.name} vs ${awayTeam.name} ${vlogo}`;
                     value = "`" + gametime + "`";
                 }
                 else if (gameStatus.short == 'FT') {
-                    name = `${hlogo} ${homeTeam.name}\t${match.goals.home}\tvs\t ${match.goals.away}\t${awayTeam.name} ${vlogo}`;
-                    value = "`" + gameStatus.short + ` ${gameStatus.elapsed}'` + "`";
+                    name = `${hlogo} ${homeTeam.name}\t${match.goals.home}\tvs\t${match.goals.away}\t${awayTeam.name} ${vlogo}`;
+                    value = "`" + gameStatus.short + "`";
                 }
                 else {
-                    name = `${hlogo} ${homeTeam.name}\t${match.goals.home}\tvs\t ${match.goals.away}\t${awayTeam.name} ${vlogo}`;
-                    value = "`Live " + gameStatus.elapsed + "'`";
+                    name = `${hlogo} ${homeTeam.name}\t${match.goals.home}\tvs\t${match.goals.away}\t${awayTeam.name} ${vlogo}`;
+                    value = "`" + gameStatus.elapsed + "'`";
                 }
-
                 embed.addField(name, value, false);
             });
         }
-
         return embed;
     }
 }
