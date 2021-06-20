@@ -66,13 +66,14 @@ module.exports = {
                     game.vTeam.score = "- ";
                 }
 
+                let summary;
+                if (game.playoffs) {
+                    summary = ` (${game.playoffs.seriesSummaryText})`;
+                }
+
                 name = `${hteam}\t${game.hTeam.score}\t\t${icon}\t\t${game.vTeam.score}\t${vteam}`;
 
                 if (game.statusNum === 1) {
-                    let summary;
-                    if (game.playoffs) {
-                        summary = ` (${game.playoffs.seriesSummaryText})`;
-                    }
                     value = "`" + game.startTimeEastern + summary + "`";
                 }
 
@@ -80,16 +81,11 @@ module.exports = {
                     value = game.period.isHalftime
                         ? '\t\`HT\`'
                         : game.clock
-                            ? `\`Q${game.period.current} ${game.clock}\``
-                            : `\`End of Q${game.period.current}\``;
+                            ? `\`Q${game.period.current} ${game.clock} ${summary}\``
+                            : `\`End of Q${game.period.current} ${summary}\``;
                 }
 
                 else if (game.statusNum === 3) {
-                    let summary = "";
-                    if (game.playoffs) {
-                        summary = ` (${game.playoffs.seriesSummaryText})`;
-                    }
-
                     value = `\`FINAL${summary}\`\t`;
                 }
 
