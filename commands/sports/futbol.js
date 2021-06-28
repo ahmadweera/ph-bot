@@ -58,11 +58,11 @@ module.exports = {
                         value = "`" + gametime + "`";
                     }
                     else if (gameStatus.short == 'FT' || gameStatus.short == 'AET') {
-                        name = `${hlogo} ${homeTeam.name}\t${match.goals.home}\t${directionIcon}\t${match.goals.away}\t${awayTeam.name} ${vlogo}`;
+                        name = `${hlogo} ${homeTeam.name} \t${match.goals.home}\t${directionIcon}\t${match.goals.away}\t ${awayTeam.name} ${vlogo}`;
                         value = "`" + gameStatus.short + "`";
                     }
                     else if (gameStatus.short == 'PEN') {
-                        name = `${hlogo} ${homeTeam.name}\t${match.goals.home} _(+${match.score.penalty.home})_\t${directionIcon}\t${match.goals.away} _(+${match.score.penalty.away})_ \t${awayTeam.name} ${vlogo}`;
+                        name = `${hlogo} ${homeTeam.name} \t${match.goals.home} (${match.score.penalty.home})\t${directionIcon}\t${match.goals.away} (${match.score.penalty.away})\t ${awayTeam.name} ${vlogo}`;
                         value = "`" + gameStatus.short + "`";
                     }
                     else {
