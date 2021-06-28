@@ -36,30 +36,45 @@ module.exports = {
                 ? resp.data.response
                 : [];
 
-            matches.forEach(match => {
-                const gameStatus = match.fixture.status;
-                const homeTeam = match.teams.home;
-                const awayTeam = match.teams.away;
-                const hlogo = emojis.cache.find(emoji => emoji.name == homeTeam.name.replace(/ /g, ''));
-                const vlogo = emojis.cache.find(emoji => emoji.name == awayTeam.name.replace(/ /g, ''));
-                const gametime = moment(match.fixture.date).tz("America/Toronto").format('h:mma');
+            if (matches.length) {
+                matches.forEach(match => {
+                    const gameStatus = match.fixture.status;
+                    const homeTeam = match.teams.home;
+                    const awayTeam = match.teams.away;
+                    const hlogo = emojis.cache.find(emoji => emoji.name == homeTeam.name.replace(/ /g, ''));
+                    const vlogo = emojis.cache.find(emoji => emoji.name == awayTeam.name.replace(/ /g, ''));
+                    const left = emojis.cache.find(emoji => emoji.name === "left");
+                    const right = emojis.cache.find(emoji => emoji.name === "right");
+                    const gametime = moment(match.fixture.date).tz("America/Toronto").format('h:mma');
 
-                let name = "";
-                let value = "";
-                if (gameStatus.short == 'NS') {
-                    name = `${hlogo} ${homeTeam.name} vs ${awayTeam.name} ${vlogo}`;
-                    value = "`" + gametime + "`";
-                }
-                else if (gameStatus.short == 'FT') {
-                    name = `${hlogo} ${homeTeam.name}\t${match.goals.home}\tvs\t${match.goals.away}\t${awayTeam.name} ${vlogo}`;
-                    value = "`" + gameStatus.short + "`";
-                }
-                else {
-                    name = `${hlogo} ${homeTeam.name}\t${match.goals.home}\tvs\t${match.goals.away}\t${awayTeam.name} ${vlogo}`;
-                    value = "`" + gameStatus.elapsed + "'`";
-                }
-                embed.addField(name, value, false);
-            });
+                    const directionIcon = match.teams.home.winner
+                        ? `<:${left.name}:${left.id}>`
+                        : `<:${right.name}:${right.id}>`;
+
+                    let name = "";
+                    let value = "";
+                    if (gameStatus.short == 'NS') {
+                        name = `${hlogo} ${homeTeam.name} vs ${awayTeam.name} ${vlogo}`;
+                        value = "`" + gametime + "`";
+                    }
+                    else if (gameStatus.short == 'FT' || gameStatus.short == 'AET') {
+                        name = `${hlogo} ${homeTeam.name}\t${match.goals.home}\t${directionIcon}\t${match.goals.away}\t${awayTeam.name} ${vlogo}`;
+                        value = "`" + gameStatus.short + "`";
+                    }
+                    else if (gameStatus.short == 'PEN') {
+                        name = `${hlogo} ${homeTeam.name}\t${match.goals.home} _(+${match.score.penalty.home})_\t${directionIcon}\t${match.goals.away} _(+${match.score.penalty.away})_ \t${awayTeam.name} ${vlogo}`;
+                        value = "`" + gameStatus.short + "`";
+                    }
+                    else {
+                        name = `${hlogo} ${homeTeam.name}\t${match.goals.home}\tvs\t${match.goals.away}\t${awayTeam.name} ${vlogo}`;
+                        value = "`" + gameStatus.elapsed + "'`";
+                    }
+
+                    embed.addField(name, value, false);
+                });
+            } else {
+                embed.setDescription('No matches scheduled.')
+            }
         }
         return embed;
     }
