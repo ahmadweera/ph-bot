@@ -67,9 +67,9 @@ module.exports = {
                     }
                     else {
                         name = `${hlogo} ${homeTeam.name}\t${match.goals.home}\tvs\t${match.goals.away}\t${awayTeam.name} ${vlogo}`;
-                        value = gameStatus.elapsed
-                            ? "`" + gameStatus.elapsed + "'`"
-                            : gameStatus.short;
+                        value = gameStatus.short == 'HT'
+                            ? gameStatus.short
+                            : "`" + gameStatus.elapsed + "'`";
                     }
 
                     embed.addField(name, value, false);
