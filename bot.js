@@ -6,6 +6,7 @@ require('dotenv').config();
 const discord = require('discord.js')
 const commands = require('./commands/commands.js')
 const storage = require('./storage.js');
+const handler = require('./handler.js');
 
 const client = new discord.Client();
 const sqlite3 = require('sqlite3').verbose();
@@ -15,8 +16,10 @@ var db = new sqlite3.Database('ph.db', (err) => { if (err) console.log(err) });
 storage.InitDB(db);
 
 var emojis;
+var mediaChannel;
 client.once('ready', () => {
     emojis = client.emojis;
+    mediaChannel = client.channels.cache.get(process.env.MEDIA_CHANNEL);
     console.log('client ready\n');
 });
 
@@ -96,4 +99,12 @@ function VerifySuccess(message) {
     }
 }
 
+setInterval(async () => {
+    if (mediaChannel) {
+        let res = await handler.UpdateArtistLatestRelease();
 
+        if (res) {
+            mediaChannel.send(`${res.name} - ${res.artist}\n${res.url}`)
+        }
+    }
+}, 10000);
