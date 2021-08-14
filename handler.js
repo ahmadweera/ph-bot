@@ -1,12 +1,6 @@
 const Axios = require('axios');
 const Auth = require('./commands/spotify/auth.js');
 
-// todo store and automate this
-var tracked_artists =
-{
-    'Kanye West': 'Nah Nah Nah (feat. DaBaby & 2 Chainz) [Remix]'
-};
-
 class Request {
     constructor(url, token) {
         this.url = url,
@@ -15,58 +9,77 @@ class Request {
     }
 }
 
-module.exports = {
-    UpdateArtistLatestRelease: async function () {
-        let res = await NewRelease('Kanye West');
+var releases = new Map();
 
-        if (res.name != tracked_artists['Kanye West']) {
-            tracked_artists['Kanye West'] = res.name;
-            console.log(`${res.name}\n${res.url}`);
-            return res;
+module.exports = {
+    Init: async function (db) {
+        db.connect();
+        let res = await db.query(`SELECT * FROM releases;`)
+
+        for (const row of res.rows) {
+            releases.set(row.artist_name, row);
+        }
+
+        console.log('data loaded.')
+    },
+    Update: async function(db, artistId, name) {
+        await db.query(`UPDATE releases SET name = $2 WHERE artist_id = $1`, [artistId, name]);
+    },
+    CheckForNewRelease: async function (db) {
+        let response = await NewRelease();
+
+        let newReleases = [];
+        for (const release of response) {
+            let artistName = release.artist_name;
+            let artistRelease = releases.get(artistName);
+            if (release.name !== artistRelease.name) {
+                await this.Update(db, artistRelease.artist_id, release.name);
+
+                artistRelease.name = release.name;
+                releases.set(artistName, artistRelease);
+                newReleases.push(release);
+            }           
+        }
+
+        return newReleases;
+    }
+}
+
+async function NewRelease() {
+    let token = await Auth.GetToken();
+    let map = new Map();
+    for (const [key, value] of releases.entries()) {
+        let res = await Axios.all([
+            Axios(new Request(`https://api.spotify.com/v1/artists/${value.artist_id}/albums?include_groups=album&limit=1`, token)),
+            Axios(new Request(`https://api.spotify.com/v1/artists/${value.artist_id}/albums?include_groups=single&limit=1`, token))
+        ]);
+
+        map.set(key, res);
+    }
+
+    let latestReleases = [];
+    for (const [key, value] of map.entries()) {
+        let album = value[0].data.items[0];
+        let single = value[1].data.items[0];
+
+        let latest_release;
+        if (album && !single) {
+            latest_release = album;
+        } else if (single && !album) {
+            latest_release = single;
+        } else if (single && album) {
+            latest_release = album.release_date > single.release_date ? album : single;
+        }
+
+        if (latest_release) {
+            latestReleases.push({
+                'name': latest_release.name,
+                'artist_id': latest_release.id,
+                'artist_name': key,
+                'url': `https://open.spotify.com/${latest_release.type}/${latest_release.id}`
+            });
         }
     }
-}
 
-async function NewRelease(name) {
-    let token = await Auth.GetToken();
-    let artist = await GetArtistByName(name, token);
-
-    let responses = await Axios.all([
-        Axios(new Request(`https://api.spotify.com/v1/artists/${artist.id}/albums?include_groups=album&limit=1`, token)),
-        Axios(new Request(`https://api.spotify.com/v1/artists/${artist.id}/albums?include_groups=single&limit=1`, token))
-    ]);
-
-    let album = responses[0].data.items[0];
-    let single = responses[1].data.items[0];
-
-    let latest_release;
-    if (album && !single) {
-        latest_release = album;
-    } else if (single && !album) {
-        latest_release = single;
-    } else if (single && album) {
-        latest_release = album.release_date > single.release_date ? album : single;
-    }
-
-    if (latest_release) {
-        return {
-            'name': latest_release.name,
-            'id': latest_release.id,
-            'artist': artist.name,
-            'url': `https://open.spotify.com/${latest_release.type}/${latest_release.id}`
-        };
-    }
-}
-
-async function GetArtistByName(name, token) {
-    let encoded_name = encodeURI(name);
-    let response = await Axios(new Request(`https://api.spotify.com/v1/search?q=${encoded_name}&type=artist&limit=1`, token));
-    let artists = response.data.artists.items;
-
-    let artist;
-    if (artists[0]) {
-        artist = artists[0];
-    }
-
-    return artist;
+    return latestReleases;
 }

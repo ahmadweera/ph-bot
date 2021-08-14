@@ -5,22 +5,24 @@ require('dotenv').config();
  */
 const discord = require('discord.js')
 const commands = require('./commands/commands.js')
-const storage = require('./storage.js');
 const handler = require('./handler.js');
 
 const client = new discord.Client();
-const sqlite3 = require('sqlite3').verbose();
+const { Client } = require('pg')
 
 // create db
-var db = new sqlite3.Database('ph.db', (err) => { if (err) console.log(err) });
-storage.InitDB(db);
+const db = new Client({
+    connectionString: process.env.PGURI
+});
 
 var emojis;
 var mediaChannel;
-client.once('ready', () => {
+client.once('ready', async () => {
+    await handler.Init(db);
+
     emojis = client.emojis;
     mediaChannel = client.channels.cache.get(process.env.MEDIA_CHANNEL);
-    console.log('client ready\n');
+    console.log('client ready.\n');
 });
 
 client.login(process.env.DISCORD_APP_TOKEN);
@@ -60,15 +62,13 @@ client.ws.on("INTERACTION_CREATE", async interaction => {
         }
     };
 
-    if (typeof message === "string") { res.data.data.content = message; }
-    else { res.data.data.embeds = [message]; }
-    client.api.interactions(interaction.id, interaction.token).callback.post(res);
-
-    let user = interaction.user
-        ? interaction.user
-        : interaction.member.user;
-    let serverId = interaction.guild_id;
-    storage.SaveCommand(db, serverId, user, command, argument);
+    try {
+        if (typeof message === "string") { res.data.data.content = message; }
+        else { res.data.data.embeds = [message]; }
+        client.api.interactions(interaction.id, interaction.token).callback.post(res);
+    } catch (error) {
+        console.error(error.message);
+    }
 });
 
 client.on('message', async (message) => {
@@ -101,10 +101,13 @@ function VerifySuccess(message) {
 
 setInterval(async () => {
     if (mediaChannel) {
-        let res = await handler.UpdateArtistLatestRelease();
-
-        if (res) {
-            mediaChannel.send(`${res.name} - ${res.artist}\n${res.url}`)
+        try {
+            let res = await handler.CheckForNewRelease(db);
+            for (const release of res) {
+                mediaChannel.send(`${release.name} - ${release.artist_name}\n${release.url}`)
+            }
+        } catch (error) {
+            console.error(error.message);
         }
     }
 }, 10000);
