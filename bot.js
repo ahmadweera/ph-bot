@@ -89,16 +89,6 @@ async function ManagePins(channel) {
     }
 }
 
-function VerifySuccess(message) {
-    if (Math.random() < 0.02) {
-        message.reply(process.env.SUCCESS)
-            .then(msg => {
-                console.log('Sucessfully Sent.')
-                msg.delete({ timeout: 1250 });
-            }).catch(e => console.log(e));
-    }
-}
-
 setInterval(async () => {
     if (mediaChannel) {
         try {
@@ -110,4 +100,4 @@ setInterval(async () => {
             console.error(error.message);
         }
     }
-}, 10000);
+}, 30000);
