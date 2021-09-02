@@ -49,6 +49,18 @@ client.ws.on("INTERACTION_CREATE", async interaction => {
         case 'futbol':
             message = await commands.GetMatches(argument, emojis);
             break;
+        case 'f1next':
+            message = await commands.GetUpcomingSchedule(argument);
+            break;
+        case 'f1teams':
+            message = await commands.GetTeamsStandings(argument);
+            break;
+        case 'f1drivers':
+            message = await commands.GetDriversStandings(argument);
+            break;
+        case 'f1schedule':
+            message = await commands.GetFullSchedule(argument);
+            break;
     }
 
     let res = {
