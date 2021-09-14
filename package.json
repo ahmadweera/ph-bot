@@ -9,7 +9,7 @@
   "author": "Ahmad Weera",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.21.1",
+    "axios": "^0.21.2",
     "discord.js": "^12.5.1",
     "dotenv": "^8.2.0",
     "eslint": "^7.15.0",
