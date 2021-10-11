@@ -15,7 +15,7 @@ module.exports = {
             params: { season: '2021' },
             headers: {
                 'x-rapidapi-host': 'api-formula-1.p.rapidapi.com',
-                'x-rapidapi-key': '868f785669mshd42dcb43b2f38d5p1c6e28jsn91a48bd6a4fb'
+                'x-rapidapi-key': process.env.RAPID_API_KEY
             }
         };
 
