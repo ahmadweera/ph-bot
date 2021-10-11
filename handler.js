@@ -10,7 +10,6 @@ class Request {
 }
 
 var releases = new Map();
-
 module.exports = {
     Init: async function (db) {
         db.connect();
@@ -20,9 +19,9 @@ module.exports = {
             releases.set(row.artist_name, row);
         }
 
-        console.log('data loaded.')
+        console.log('data loaded.');
     },
-    Update: async function(db, artistId, name) {
+    Update: async function (db, artistId, name) {
         await db.query(`UPDATE releases SET name = $2 WHERE artist_id = $1`, [artistId, name]);
     },
     CheckForNewRelease: async function (db) {
@@ -38,7 +37,7 @@ module.exports = {
                 artistRelease.name = release.name;
                 releases.set(artistName, artistRelease);
                 newReleases.push(release);
-            }           
+            }
         }
 
         return newReleases;

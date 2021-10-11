@@ -1,5 +1,6 @@
 const Axios = require('axios');
 const Auth = require('./auth');
+const Helper = require('../../helper');
 
 class Request {
     constructor(url, token) {
@@ -10,7 +11,10 @@ class Request {
 }
 
 module.exports = {
-    GetItem: async function (command, title) {
+    GetItem: async function (interaction) {
+        let command = Helper.GetInteractionName(interaction);
+        let title = Helper.GetInteractionArgs(interaction);
+        
         if (title) {
             let encoded_title = encodeURI(title);
             let token = await Auth.GetToken();
@@ -20,9 +24,14 @@ module.exports = {
                 ? response.data.tracks.items[0]
                 : response.data.albums.items[0];
 
-            if (item) {
-                return `${item.name}\n${item.external_urls.spotify}`;
-            }
+            let content = item
+                ? `${item.name}\n${item.external_urls.spotify}`
+                : 'Release not found.'
+
+            return Helper.CreateResponseObject({
+                interaction: interaction,
+                content: content
+            });
         }
     }
 }

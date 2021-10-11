@@ -3,12 +3,12 @@ require('dotenv').config();
 /**
  * Imports
  */
-const discord = require('discord.js')
-const commands = require('./commands/commands.js')
+const commands = require('./commands/commands');
+const discord = require('discord.js');
 const handler = require('./handler.js');
 
 const client = new discord.Client();
-const { Client } = require('pg')
+const { Client } = require('pg');
 
 // create db
 const db = new Client({
@@ -17,67 +17,20 @@ const db = new Client({
 
 var emojis;
 var mediaChannel;
-client.once('ready', async () => {
-    await handler.Init(db);
 
+client.once('ready', async () => {
+    //await handler.Init(db);
     emojis = client.emojis;
     mediaChannel = client.channels.cache.get(process.env.MEDIA_CHANNEL);
+
     console.log('client ready.\n');
 });
 
 client.login(process.env.DISCORD_APP_TOKEN);
 client.ws.on("INTERACTION_CREATE", async interaction => {
-    const command = interaction.data.name;
-    const argument = interaction.data.options
-        ? interaction.data.options[0].value
-        : null;
-
-    let message = '';
-    switch (interaction.data.name) {
-        case 'new':
-            message = await commands.GetNewRelease(argument);
-            break;
-        case 'track':
-            message = await commands.GetItem(command, argument);
-            break;
-        case 'album':
-            message = await commands.GetItem(command, argument);
-            break;
-        case 'nba':
-            message = await commands.GetGames(argument, emojis);
-            break;
-        case 'futbol':
-            message = await commands.GetMatches(argument, emojis);
-            break;
-        case 'f1next':
-            message = await commands.GetUpcomingSchedule(argument);
-            break;
-        case 'f1teams':
-            message = await commands.GetTeamsStandings(argument);
-            break;
-        case 'f1drivers':
-            message = await commands.GetDriversStandings(argument);
-            break;
-        case 'f1schedule':
-            message = await commands.GetFullSchedule(argument);
-            break;
-    }
-
-    let res = {
-        data: {
-            type: 4,
-            data: {
-                content: '',
-                embeds: [],
-                tts: false
-            }
-        }
-    };
-
     try {
-        if (typeof message === "string") { res.data.data.content = message; }
-        else { res.data.data.embeds = [message]; }
-        client.api.interactions(interaction.id, interaction.token).callback.post(res);
+        const response = await commands.GenerateResponse(interaction, emojis);
+        client.api.interactions(interaction.id, interaction.token).callback.post(response);
     } catch (error) {
         console.error(error.message);
     }
@@ -112,4 +65,4 @@ setInterval(async () => {
             console.error(error.message);
         }
     }
-}, 30000);
+}, 1250);

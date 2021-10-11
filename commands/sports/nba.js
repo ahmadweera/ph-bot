@@ -1,9 +1,10 @@
 /**
  * Imports
  */
-const axios = require('axios');
-const moment = require('moment-timezone');
-const discord = require('discord.js');
+const Axios = require('axios');
+const Moment = require('moment-timezone');
+const Discord = require('discord.js');
+const Helper = require('../../helper');
 
 const date_format = 'YYYYMMDD';
 const user_date_format = 'MMM Do YYYY';
@@ -16,14 +17,16 @@ class Request {
 }
 
 module.exports = {
-    GetGames: async function (arg, emojis) {
-        let embed = new discord.MessageEmbed();
+    GetGames: async function (interaction, emojis) {
+        let arg = Helper.GetInteractionArgs(interaction);
+        let embed = new Discord.MessageEmbed();
+
         let date = arg
-            ? moment(new Date(arg))
-            : moment().tz("America/Toronto");
+            ? Moment(arg)
+            : Moment().tz("America/Toronto");
 
         if (date.isValid()) {
-            const resp = await axios(new Request(date.format(date_format)))
+            const resp = await Axios(new Request(date.format(date_format)))
                 .catch(async function (error) {
                     embed.setDescription('API Error, Couldn\'t Process Date');
                 });
@@ -32,7 +35,7 @@ module.exports = {
                 ? resp.data.games
                 : [];
 
-            embed = new discord.MessageEmbed();
+            embed = new Discord.MessageEmbed();
             embed.setTitle(`Games for ${date.format(user_date_format)}`);
 
             games.forEach((game) => {
@@ -66,10 +69,9 @@ module.exports = {
                     game.vTeam.score = "- ";
                 }
 
-                let summary;
-                if (game.playoffs) {
-                    summary = ` (${game.playoffs.seriesSummaryText})`;
-                }
+                let summary = game.playoffs 
+                ? ` (${game.playoffs.seriesSummaryText})`
+                : '';
 
                 name = `${hteam}\t${game.hTeam.score}\t\t${icon}\t\t${game.vTeam.score}\t${vteam}`;
 
@@ -86,20 +88,51 @@ module.exports = {
                 }
 
                 else if (game.statusNum === 3) {
-                    value = `\`FINAL${summary}\`\t`;
+                    value = `\`FINAL\``;
+                    if (summary) {
+                        value += `${summary}\``
+                    }
                 }
 
                 embed.addField(name, value, false);
             });
 
             if (games.length === 0) {
-                embed.setDescription('No games scheduled');
+                embed.setDescription('No games scheduled' + Math.random());
             }
-
-            return embed;
+        } else {
+            embed.setDescription('Invalid Date');
         }
 
-        embed.setDescription('Invalid Date');
-        return embed;
+        let today = date.format('YYYY-MM-DD');
+        let yesterday = Moment(date, date_format).subtract(1, 'days').format('YYYY-MM-DD');
+        let tommorow = Moment(date, date_format).add(1, 'days').format('YYYY-MM-DD')
+        let components = [
+            Helper.AddRefreshComponent(today),
+            {
+                type: 2,
+                emoji: {
+                    name: "left",
+                    id: "846394816601522226"
+                },
+                style: 2,
+                custom_id: yesterday,
+            },
+            {
+                type: 2,
+                emoji: {
+                    name: "right",
+                    id: "846394816706773022"
+                },
+                style: 2,
+                custom_id: tommorow,
+            }
+        ];
+
+        return Helper.CreateResponseObject({
+            interaction: interaction,
+            embeds: [embed],
+            components: components
+        });
     }
 }

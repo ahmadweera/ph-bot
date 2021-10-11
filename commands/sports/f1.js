@@ -1,43 +1,52 @@
 require('dotenv').config();
 
-const axios = require('axios');
-const moment = require('moment-timezone');
-const discord = require('discord.js');
+const Axios = require('axios');
+const Moment = require('moment-timezone');
+const Discord = require('discord.js');
+const Helper = require('../../helper');
 
 module.exports = {
-    GetDriversStanding: async function (season) {
-        let embed = new discord.MessageEmbed();
-        var request = {
-            method: 'get',
-            url: 'http://ergast.com/api/f1/current/driverStandings.json'
+    GetDriversStanding: async function (interaction) {
+        let embed = new Discord.MessageEmbed();
+
+        var options = {
+            method: 'GET',
+            url: 'https://api-formula-1.p.rapidapi.com/rankings/drivers',
+            params: { season: '2021' },
+            headers: {
+                'x-rapidapi-host': 'api-formula-1.p.rapidapi.com',
+                'x-rapidapi-key': '868f785669mshd42dcb43b2f38d5p1c6e28jsn91a48bd6a4fb'
+            }
         };
 
-        let resp = await axios(request);
-        let seasonData = resp.data.MRData.StandingsTable.StandingsLists[0];
+        const resp = await Axios.request(options);
+        const drivers = resp.data.response;
+        
+        let season = drivers[0].season;
+        embed.setTitle(`${season} Standings`);
+        for (const driver of drivers) {
+            let name = `#${driver.position} - ${driver.driver.name}`;
 
-        embed.setTitle(`${seasonData.season} Standings - Rd. ${seasonData.round}`);
-        for (const ds of seasonData.DriverStandings) {
-            const driver = ds.Driver;
-            let name = `#${ds.position} - ${driver.givenName} ${driver.familyName}`;
-            let constructors = ds.Constructors
-
-            value = constructors.length > 1
-                ? constructors.map(d => d.name).join(', ')
-                : constructors[0].name;
-
+            if (driver.points) {
+                name += ` (${driver.points})`
+            }
+            let value = `${driver.team.name}`;
             embed.addField(name, value, false);
         }
 
-        return embed;
+        return Helper.CreateResponseObject({
+            interaction: interaction,
+            embeds: [embed]
+        });
     },
-    GetTeamsStandings: async function (season) {
-        let embed = new discord.MessageEmbed();
+    GetTeamsStandings: async function (interaction) {
+        let embed = new Discord.MessageEmbed();
         var request = {
             method: 'get',
             url: 'http://ergast.com/api/f1/current/constructorStandings.json'
         };
 
-        let resp = await axios(request);
+        let resp = await Axios(request);
         let seasonData = resp.data.MRData.StandingsTable.StandingsLists[0];
         embed.setTitle(`Constructors Round ${seasonData.round} (${seasonData.season})`);
         for (const cs of seasonData.ConstructorStandings) {
@@ -48,50 +57,59 @@ module.exports = {
             embed.addField(name, value, false);
         }
 
-        return embed;
+        return Helper.CreateResponseObject({
+            interaction: interaction,
+            embeds: [embed]
+        });
     },
-    GetFullSchedule: async function () {
-        let embed = new discord.MessageEmbed();
+    GetFullSchedule: async function (interaction) {
+        let embed = new Discord.MessageEmbed();
         var request = {
             method: 'get',
             url: 'http://ergast.com/api/f1/current.json'
         };
 
-        let resp = await axios(request);
+        let resp = await Axios(request);
         let scheduleData = resp.data.MRData.RaceTable;
 
         embed.setTitle(`${scheduleData.season} F1 Schedule`);
         for (const race of scheduleData.Races) {
             let name = `Round ${race.round} - ${race.raceName}`;
-            const raceDate = moment(`${race.date}T${race.time}`).format('MMM D h:mma');
+            const raceDate = Moment(`${race.date}T${race.time}`).tz("America/Toronto").format('MMM D h:mma');
             embed.addField(name, raceDate, false);
         }
 
-        return embed;
+        return Helper.CreateResponseObject({
+            interaction: interaction,
+            embeds: [embed]
+        });
     },
-    GetUpcomingSchedule: async function () {
-        let embed = new discord.MessageEmbed();
+    GetUpcomingSchedule: async function (interaction) {
+        let embed = new Discord.MessageEmbed();
         var request = {
             method: 'get',
             url: 'http://ergast.com/api/f1/current.json'
         };
 
-        let resp = await axios(request);
+        let resp = await Axios(request);
         let race = GetClosestRace(resp.data.MRData.RaceTable.Races);
 
         embed.setTitle('Next Race');
 
-        const raceDate = moment(`${race.date}T${race.time}`).format('MMM D h:mma');
+        const raceDate = Moment(`${race.date}T${race.time}`).tz("America/Toronto").format('MMM D h:mma');
         embed.setDescription(`${race.raceName} ${raceDate}`);
 
-        return embed;
+        return Helper.CreateResponseObject({
+            interaction: interaction,
+            embeds: [embed]
+        });
     }
 }
 
 function GetClosestRace(races) {
-    const date = moment();
+    const date = Moment();
     for (const race of races) {
-        let raceDate = moment(race.date);
+        let raceDate = Moment(race.date);
         if (raceDate > date) {
             return race
         }

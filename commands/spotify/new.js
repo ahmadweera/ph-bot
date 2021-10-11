@@ -1,5 +1,6 @@
 const Axios = require('axios');
 const Auth = require('./auth');
+const Helper = require('../../helper');
 
 class Request {
     constructor(url, token) {
@@ -10,12 +11,13 @@ class Request {
 }
 
 module.exports = {
-    GetArtistNewRelease: async function (name) {
-        if (name) {
-            let token = await Auth.GetToken();
-            let artist = await GetArtistByName(name, token);
-            
+    GetArtistNewRelease: async function (interaction) {
+        let name = Helper.GetInteractionArgs(interaction);
+        let token = await Auth.GetToken();
+        let artist = await GetArtistByName(name, token);
 
+        let latest_release;
+        if (artist) {
             let responses = await Axios.all([
                 Axios(new Request(`https://api.spotify.com/v1/artists/${artist.id}/albums?include_groups=album&limit=1`, token)),
                 Axios(new Request(`https://api.spotify.com/v1/artists/${artist.id}/albums?include_groups=single&limit=1`, token))
@@ -23,20 +25,27 @@ module.exports = {
 
             let album = responses[0].data.items[0];
             let single = responses[1].data.items[0];
-
-            let latest_release;
-            if (album && !single) {
+            if (album) {
                 latest_release = album;
-            } else if (single && !album) {
-                latest_release = single;
-            } else if (single && album) {
-                latest_release = album.release_date > single.release_date ? album : single;
             }
-
-            if (latest_release) {
-                return `${artist.name}\nhttps://open.spotify.com/${latest_release.type}/${latest_release.id}`;
+            if (single) {
+                latest_release = single;
+            }
+            if (album && single) {
+                latest_release = album.release_date > single.release_date
+                    ? album
+                    : single;
             }
         }
+
+        let content = artist && latest_release
+            ? `${artist.name}\nhttps://open.spotify.com/${latest_release.type}/${latest_release.id}`
+            : `I couldn't find anything, sorry.`
+
+        return Helper.CreateResponseObject({
+            interaction: interaction,
+            content: content
+        });
     }
 }
 

@@ -1,21 +1,24 @@
 require('dotenv').config();
 
-const axios = require('axios');
-const moment = require('moment-timezone');
-const discord = require('discord.js');
+const Axios = require('axios');
+const Moment = require('moment-timezone');
+const Discord = require('discord.js');
+const Helper = require('../../helper');
 
 const date_format = 'YYYY-MM-DD';
 const user_date_format = 'MMM Do YYYY';
 
 module.exports = {
-    GetMatches: async function (arg, emojis) {
-        let embed = new discord.MessageEmbed();
+    GetMatches: async function (interaction, emojis) {
+        let arg = Helper.GetInteractionArgs(interaction);
+
+        let embed = new Discord.MessageEmbed();
         let date = arg
-            ? moment(new Date(arg))
-            : moment().tz("America/Toronto");
+            ? Moment(arg)
+            : Moment().tz("America/Toronto");
 
         if (date.isValid()) {
-            date = moment(date).utc();
+            date = Moment(date).utc();
             embed.setTitle(`Matches for ${date.format(user_date_format)}`);
 
             const req = {
@@ -28,7 +31,7 @@ module.exports = {
                 }
             };
 
-            const resp = await axios(req).catch(async function (error) {
+            const resp = await Axios(req).catch(async function (error) {
                 embed.setDescription('API Error, Couldn\'t Process Date');
             });
 
@@ -45,7 +48,7 @@ module.exports = {
                     const vlogo = emojis.cache.find(emoji => emoji.name == awayTeam.name.replace(/ /g, ''));
                     const left = emojis.cache.find(emoji => emoji.name === "left");
                     const right = emojis.cache.find(emoji => emoji.name === "right");
-                    const gametime = moment(match.fixture.date).tz("America/Toronto").format('h:mma');
+                    const gametime = Moment(match.fixture.date).tz("America/Toronto").format('h:mma');
 
                     const directionIcon = match.teams.home.winner
                         ? `<:${left.name}:${left.id}>`
@@ -78,6 +81,11 @@ module.exports = {
                 embed.setDescription('No matches scheduled.')
             }
         }
-        return embed;
+
+        return Helper.CreateResponseObject({
+            interaction: interaction,
+            embeds: [embed],
+            components: [ Helper.AddRefreshComponent(date.format(date_format)) ]
+        });
     }
 }
