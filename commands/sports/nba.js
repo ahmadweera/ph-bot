@@ -98,7 +98,7 @@ module.exports = {
             });
 
             if (games.length === 0) {
-                embed.setDescription('No games scheduled' + Math.random());
+                embed.setDescription('No games scheduled');
             }
         } else {
             embed.setDescription('Invalid Date');
