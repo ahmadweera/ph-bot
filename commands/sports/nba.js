@@ -56,7 +56,7 @@ module.exports = {
                 }
 
                 const icon = game.statusNum === 3
-                    ? game.hTeam.score > game.vTeam.score
+                    ? parseInt(game.hTeam.score) > parseInt(game.vTeam.score)
                         ? `<:${left.name}:${left.id}>`
                         : `<:${right.name}:${right.id}>`
                     : `<:${vs.name}:${vs.id}>`;
