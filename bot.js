@@ -19,7 +19,7 @@ var emojis;
 var mediaChannel;
 
 client.once('ready', async () => {
-    //await handler.Init(db);
+    await handler.Init(db);
     emojis = client.emojis;
     mediaChannel = client.channels.cache.get(process.env.MEDIA_CHANNEL);
 

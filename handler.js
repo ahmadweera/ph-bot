@@ -21,18 +21,19 @@ module.exports = {
 
         console.log('data loaded.');
     },
-    Update: async function (db, artistId, name) {
-        await db.query(`UPDATE releases SET name = $2 WHERE artist_id = $1`, [artistId, name]);
+    Update: async function (db, artistId, releaseName, releaseId) {
+        await db.query(`UPDATE releases SET name = $2, release_id = $3 WHERE artist_id = $1`, [artistId, releaseName, releaseId]);
     },
     CheckForNewRelease: async function (db) {
         let response = await NewRelease();
-
         let newReleases = [];
+
         for (const release of response) {
             let artistName = release.artist_name;
             let artistRelease = releases.get(artistName);
-            if (release.name !== artistRelease.name) {
-                await this.Update(db, artistRelease.artist_id, release.name);
+
+            if (release.release_id !== artistRelease.release_id) {
+                await this.Update(db, artistRelease.artist_id, release.name, release.release_id);
 
                 artistRelease.name = release.name;
                 releases.set(artistName, artistRelease);
@@ -72,6 +73,7 @@ async function NewRelease() {
 
         if (latest_release) {
             latestReleases.push({
+                'release_id': latest_release.id,
                 'name': latest_release.name,
                 'artist_id': latest_release.id,
                 'artist_name': key,
