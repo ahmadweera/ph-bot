@@ -13,7 +13,7 @@
     "discord.js": "^12.5.1",
     "dotenv": "^8.2.0",
     "eslint": "^8.1.0",
-    "moment": "^2.29.1",
+    "moment": "^2.29.2",
     "moment-timezone": "^0.5.32",
     "nodemon": "^2.0.6",
     "pg": "^8.7.1"
