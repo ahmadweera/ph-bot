@@ -90,7 +90,7 @@ module.exports = {
                 else if (game.statusNum === 3) {
                     value = `\`FINAL\``;
                     if (summary) {
-                        value += `${summary}\``
+                        value += `${summary}`
                     }
                 }
 
