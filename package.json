@@ -14,7 +14,7 @@
     "dotenv": "^8.2.0",
     "eslint": "^8.1.0",
     "moment": "^2.29.2",
-    "moment-timezone": "^0.5.32",
+    "moment-timezone": "^0.5.35",
     "nodemon": "^2.0.6",
     "pg": "^8.7.1"
   }
